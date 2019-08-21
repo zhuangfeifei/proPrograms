@@ -1,0 +1,359 @@
+<template>
+    <view id="home">
+        
+        <view class="swipers">
+            <swiper indicator-dots="{{indicatorDots}}" autoplay="{{autoplay}}" interval="{{interval}}" duration="{{duration}}" circular="{{true}}"
+                bindchange="BannerListSwiper">
+                <block wx:for="{{GetHomeBannerInfo.BannerList}}" wx:key="{{index}}">
+                    <swiper-item>
+                        <image @tap="detailsBanner" data-item="{{item}}" src="{{item.ImageUrl}}" class="slide-image" mode="aspectFill" lazy-load />
+                    </swiper-item>
+                </block>
+            </swiper>
+            <view class="indicator">
+                <view wx:for="{{GetHomeBannerInfo.BannerList}}" wx:key="{{index}}" class="{{indicatorActives == index ? 'indicatorActive' : ''}}"></view>
+            </view>
+        </view>
+
+        <view class="annualGiving">
+            <view class="courseClass">
+                <block wx:for="{{courseClassList}}" wx:key="{{index}}">
+                    <view class="courseClassLists" @tap="classification" data-item="{{item}}">
+                        <image src="{{item.imgUrl}}" mode="aspectFill" lazy-load />
+                        <view>{{item.title}}</view>
+                    </view>
+                </block>
+            </view>
+            <h2>年度大课</h2>
+            <block wx:for="{{GetHomeBannerInfo.DaKaCollegeList}}" wx:key="{{index}}">
+                <view class="annualGivingList" @tap="details" data-item="{{item}}">
+                    <image src="{{item.SmallImageUrl}}" mode="aspectFill" lazy-load />
+                    <view class="annualGivingList_cont">
+                        <h3>{{item.Title}}</h3>
+                        <view class="annualGivingList_cont_title">
+                            <!-- <image wx:if="{{item.SalePrice > 0}}" class="SalePrice" src="/images/home/cb.png" lazy-load/> -->
+                            <image wx:if="{{item.SalePrice == 0}}" src="/images/home/free.png" />
+                            <!-- <text wx:if="{{item.SalePrice > 0}}" class="annualGiving_amout"> {{item.SalePrice / 100}}</text> -->
+                            <text> 讲师 | {{item.TeacherName}}</text>
+                        </view>
+                    </view>
+                </view>
+            </block>
+        </view>
+
+        <view class="fineCourse">
+            <h2>精品课程</h2>
+            <view class="fineCourse_swiper">
+                <swiper indicator-dots="{{indicatorDots}}" autoplay="{{false}}" interval="{{interval}}" duration="{{duration}}" circular="{{false}}"
+                    bindchange="fineCourseSwiper">
+                    <block wx:for="{{GetHomeBannerInfo.ExcellentCollegeList}}" wx:key="{{index}}">
+                        <swiper-item>
+                            <image @tap="details" data-item="{{item}}" src="{{item.SmallImageUrl}}" class="slide-image" mode="aspectFill" lazy-load />
+                        </swiper-item>
+                    </block>
+                </swiper>
+                <view class="indicator">
+                    <view wx:for="{{GetHomeBannerInfo.ExcellentCollegeList}}" wx:key="{{index}}" class="{{indicatorActive == index ? 'indicatorActive' : ''}}"></view>
+                </view>
+            </view>
+        </view>
+
+        <view class="audioCourse">
+            <h2>音频课程</h2>
+            <view class="audioCourse_list">
+                <block wx:for="{{GetHomeBannerInfo.YinPinCollegeList}}" wx:key="{{index}}">
+                    <view class="audioCourseList" @tap="details" data-item="{{item}}">
+                        <image src="{{item.SmallImageUrl}}" mode="aspectFill" lazy-load />
+                        <view>{{item.Title}}</view>
+                        <h4>{{item.TeacherName}}</h4>
+                    </view>
+                </block>
+            </view>
+        </view>
+
+        <!-- <view class="Looking">
+            <h2>敬请期待</h2>
+            <block wx:for="{{GetHomeBannerInfo.ExcellentCollegeList}}" wx:key="{{index}}">
+                <view class="LookingList">
+                    <image src="{{item.SmallImageUrl}}" mode="aspectFill" lazy-load />
+                    <view class="LookingList_cont">
+                        <h3>{{item.Title}}</h3>
+                        <view class="LookingList_cont_title">
+                            <text wx:if="{{item.CollagePrice > 0}}">¥{{item.CollagePrice / 100}}</text>
+                            <image wx:else src="/images/home/free.png" />
+                            <text> 讲师 | {{item.TeacherName}}</text>
+                        </view>
+                    </view>
+                </view>
+            </block>
+        </view> -->
+        
+    </view>
+</template>
+
+<script>
+import wepy from 'wepy'
+import { connect } from 'wepy-redux'
+import 'wepy-async-function'
+
+@connect({
+    userinfo(state) {
+        return state.counter.userinfo;
+    },
+})
+    
+export default class Home extends wepy.page {
+    
+    config = {
+        navigationBarTitleText: '箴创学院'
+    }
+    
+    components = {
+    
+    }
+    
+    data = {
+        courseClassList:[
+            { title:'免费课程', imgUrl:'/images/home/mianfei.png', CollegeId: 1, CollegeIdIndex: 1 },
+            { title:'年度大课', imgUrl:'/images/home/niandu.png', CollegeId: 2, CollegeIdIndex: 2 },
+            { title:'课程列表', imgUrl:'/images/home/kechen.png', CollegeId: 3, CollegeIdIndex: 0 },
+            { title:'音频课程', imgUrl:'/images/home/yinpin.png', CollegeId: 7, CollegeIdIndex: 8 },
+        ],
+        GetHomeBannerInfo: [],
+        indicatorDots: false,
+        autoplay: true,
+        interval: 5000,
+        duration: 1000,
+        indicatorActive:0,
+        indicatorActives:0,
+    }
+    
+    computed = {
+    
+    }
+    
+    methods = {
+        details(e){
+            // console.log(e.currentTarget.dataset.item)
+            wepy.$store.dispatch({
+                type: 'CollegeIds',
+                payload: e.currentTarget.dataset.item.CollegeId
+            });
+            wx.navigateTo({url:`/pages/home/details`})
+        },
+        detailsBanner(e){
+            // console.log(e.currentTarget.dataset.item)
+            let jumpInfo=e.currentTarget.dataset.item.JumpInfo;
+            if(jumpInfo=="my")
+            {
+                wx.switchTab({url:'/pages/my/my'})
+            }
+            else
+            {
+                wepy.$store.dispatch({
+                    type: 'CollegeIds',
+                    payload: jumpInfo
+                });
+                wx.navigateTo({url:`/pages/home/details`})
+            }
+        },
+        fineCourseSwiper(e){
+            // console.log(e.detail.current)
+            this.indicatorActive = e.detail.current
+            this.$apply()
+        },
+        BannerListSwiper(e){
+            // console.log(e.detail.current)
+            this.indicatorActives = e.detail.current
+            this.$apply()
+        },
+        classification(e){
+            wx.navigateTo({url:`/pages/home/classification?id=${e.currentTarget.dataset.item.CollegeId}&index=${e.currentTarget.dataset.item.CollegeIdIndex}`})
+        },
+    }
+
+    onLoad(option){
+        if(option.CollegeId){
+            wepy.$store.dispatch({
+                type: 'CollegeIds',
+                payload: option.CollegeId
+            });
+            wx.navigateTo({url:`/pages/home/details`})
+        }
+    }
+    
+    onShow() {
+        // console.log(wepy)
+        wepy.$Api.GetHomeBannerInfo().then(res=>{
+            // console.log(res.data)
+            if(res.data.IsSuccess){
+                this.GetHomeBannerInfo = res.data.Data
+                this.$apply()
+            }else{
+
+            }
+            
+        },err=>{
+
+        })
+    }
+
+    onShareAppMessage(res) {
+        if (res.from === 'button') {
+            // 来自页面内转发按钮
+            console.log(res.target)
+        }
+        return {
+            title: '箴创学院',
+            path: '/pages/home/index'
+        }
+    }
+}
+</script>
+
+<style lang='less'>
+#home{
+    width: 100%; height: 100%; background-color: #FFFFFF; position: relative;
+    // display: flex; justify-content: space-around; align-items: center;
+}
+
+.swipers{
+    width: 100%; height: 320rpx; position: relative;
+    swiper{
+        width: 100%; height: 100%;
+    }
+    .slide-image{
+        width: 100%; height: 100%; 
+    }
+    .indicator{
+        width: 100%; height: 10rpx; display: flex; justify-content: center;
+        position: absolute; bottom: 70rpx; left: 0;
+        view{
+            width: 10rpx; height: 10rpx; border-radius: 50%; opacity:0.37; background-color: #FFFFFF; margin-right: 10rpx;
+        }
+        .indicatorActive{
+            width: 46rpx; height: 10rpx; border-radius: 5px;
+        }
+    }
+}
+
+
+// 年度大课
+.annualGiving{
+    width: 100%; box-sizing: border-box; padding: 0 30rpx; padding-top: 174rpx;
+    .courseClass{
+        width: 690rpx; height: 176rpx; border-radius: 20rpx; box-shadow:0px 0px 40rpx 0px rgba(0,0,0,0.07);
+        background-color: #FFFFFF; position: absolute; top: 278rpx; left: 30rpx; z-index: 1000!important;
+        display: flex; justify-content: space-around; box-sizing: border-box; padding-top: 14rpx;
+        .courseClassLists{
+            width: 106rpx; font-size: 24rpx; color: #515356; text-align: center;
+            image{width: 100%; height: 106rpx;}
+        }
+    }
+    h2{ color: #333333; font-size: 36rpx;font-family:PingFangSC-Semibold; font-weight:600; }
+    .annualGivingList{
+        width: 100%; box-sizing: border-box;
+        display: flex; justify-content: space-between; align-items: center;
+        image{
+            width: 200rpx; height: 120rpx; border-radius: 10rpx;
+        }
+        .annualGivingList_cont{
+            width: 452rpx; height: 100%; border-bottom: 1px solid #EEEEEE; box-sizing: border-box; padding-top: 36rpx; padding-bottom: 40rpx;
+            h3{ font-size: 28rpx; color: #333333; font-family:PingFangSC-Medium; font-weight:500; }
+            .annualGivingList_cont_title{
+                width: 100%; height: 40rpx; margin-top: 26rpx;
+                .annualGiving_amout{ color: #F74D4D; font-family:PingFangSC-Semibold; font-weight:600; }
+                text{ color: #999999; color: 24rpx; }
+                .SalePrice{
+                    width: 35rpx; height: 40rpx; position: relative; top: 10rpx;
+                }
+                image{
+                    width: 56rpx; height: 34rpx; position: relative; top: 8rpx;
+                }
+            }
+        }
+    }
+}
+
+
+// 精品课程
+.fineCourse{
+    width: 100%; box-sizing: border-box; margin-top: 40rpx; position: relative;
+    h2{ color: #333333; font-size: 36rpx;font-family:PingFangSC-Semibold; font-weight:600; margin-left: 30rpx; }
+    .fineCourse_swiper{
+        width: 100%; text-align: center; margin-top: 40rpx;
+        swiper{
+            width: 100%;
+        }
+        .slide-image{
+            width: 690rpx; height: 100%; border-radius: 10rpx;
+            // box-shadow:0px 0rpx 40rpx 0px rgba(0,0,0,0.3);
+        }
+        .indicator{
+            width: 100%; height: 10rpx; display: flex; justify-content: center;
+            position: absolute; bottom: 25rpx; left: 0;
+            view{
+                width: 10rpx; height: 10rpx; border-radius: 50%; opacity:0.37; background-color: #FFFFFF; margin-right: 10rpx;
+            }
+            .indicatorActive{
+                width: 46rpx; height: 10rpx; border-radius: 5px;
+            }
+        }
+    }
+}
+
+
+
+// 音频课程
+.audioCourse{
+    width: 100%; height: 400rpx; box-sizing: border-box; margin-top: 40rpx; padding: 0 30rpx;
+    h2{ color: #333333; font-size: 36rpx;font-family:PingFangSC-Semibold; font-weight:600; }
+    .audioCourse_list{
+        width: 100%; height: 300rpx; display: flex; justify-content: space-between; margin-top: 30rpx;
+        .audioCourseList{
+            width: 330rpx; height: 100%;
+            image{ width: 100%; height: 220rpx; border-radius: 10rpx; }
+            & view{ 
+                width: 100%; height: 30rpx; line-height: 30rpx; margin-bottom: 5rpx;
+                font-family:PingFangSC-Medium; font-weight:500; color: #333333;
+                display: -webkit-box;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                word-wrap: break-word;
+                white-space: normal !important;
+                -webkit-line-clamp: 1;
+                -webkit-box-orient: vertical;
+            }
+            h4{font-size: 24rpx; color: #999999; font-family:PingFangSC-Regular; font-weight:400;}
+        }
+    }
+}
+
+
+// 年度大课
+.Looking{
+    width: 100%; box-sizing: border-box; padding: 0 30rpx; margin-top: 30rpx;
+    h2{ color: #333333; font-size: 36rpx;font-family:PingFangSC-Semibold; font-weight:600; }
+    .LookingList{
+        width: 100%; height: 180rpx; box-sizing: border-box;
+        display: flex; justify-content: space-between; align-items: center;
+        image{
+            width: 200rpx; height: 120rpx; border-radius: 10rpx;
+        }
+        .LookingList_cont{
+            width: 452rpx; height: 100%; border-bottom: 1px solid #EEEEEE; box-sizing: border-box; padding-top: 36rpx;
+            h3{ font-size: 28rpx; color: #333333; font-family:PingFangSC-Medium; font-weight:500; }
+            .LookingList_cont_title{
+                width: 100%; margin-top: 26rpx;
+                text:nth-child(1){ color: #F74D4D; font-family:PingFangSC-Semibold; font-weight:600; }
+                text:nth-child(2){ color: #999999; color: 24rpx; }
+                image{
+                    width: 56rpx; height: 34rpx; position: relative; top: 7rpx;
+                }
+            }
+        }
+    }
+}
+
+
+</style>

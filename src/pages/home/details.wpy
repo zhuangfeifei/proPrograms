@@ -1,0 +1,628 @@
+<template>
+        <view id="details">
+            <import src="../../wxParse/wxParse.wxml"/>
+
+            <view class="details_Top">
+                <view class="detailsVideo">
+                    <video class="image-all" id="myVideo" wx:if="{{collegedetail}}" custom-cache="{{false}}" 
+                        src="{{videoIndexUrl}}" controls enable-play-gesture auto-pause-if-open-native 
+                        auto-pause-if-navigate show-mute-btn show-center-play-btn show-progress 
+                        bindplay="playVideo" >
+                        
+                    </video>
+                </view>
+                <image wx:if="{{isVideo}}" @tap="changeTab" data-index="1" class="videoBanner" src="{{collegedetail.SmallImageUrl}}" mode="aspectFill" lazy-load/>
+                <view wx:if="{{isVideoLoading}}" class="videoLoading"><van-loading type="spinner" color="#fff" /></view>
+                <image wx:if="{{isVideoing}}" class="videoBanners" src="{{collegedetail.TeacherInfo.LogoUrl}}" mode="aspectFill" lazy-load/>
+
+                <view class="details_tab">
+                    <block wx:for="{{tabList}}" wx:key="{{index}}">
+                        <view class="tabList" @tap="changeTab" data-index="{{index}}">
+                            <text>{{item}}</text><view class="{{tabIndex == index ? 'tabActive' : ''}}"></view>
+                        </view>
+                    </block>
+                </view>
+            </view>
+            
+            <scroll-view wx:if="{{tabIndex == 0 && collegedetail != ''}}" scroll-y style="height: {{(screenHeight + px(134))+'px'}};">
+            <!-- 课程内容 -->
+            <view class="details_information">
+                <view class="details_information_title">
+                    <view><h1>{{collegedetail.Title}}</h1><view wx:if="{{!isIos}}" class="SalePrice"><image src="/images/home/cb.png" lazy-load/>{{collegedetail.SalePrice/100}}</view></view>
+                    <view><text>人气：{{collegedetail.ViewCount}}</text><text wx:if="{{!isIos}}" class="del">原价：{{collegedetail.CollegePrice/100}}</text></view>
+                    <view wx:if="{{isIos && collegedetail.SalePrice > 0}}" @tap="buyMethod" class="consulting">课程咨询</view>
+                </view>
+                <view class="details_information_user">
+                    <image class="user_pr" src="{{collegedetail.TeacherInfo.LogoUrl}}" mode="aspectFill" lazy-load />
+                    <view class="details_information_user_cont">
+                        <view class="details_information_user_cont_name">
+                            <view class="details_name">{{collegedetail.TeacherInfo.Name}}</view>
+                            <image class="jiangshi" src="/images/home/jiangshi.png" mode="aspectFill" lazy-load />
+                        </view>
+                        <view class="details_information_user_cont_name_title">{{collegedetail.TeacherInfo.Title}}</view>
+                        <view class="details_information_user_cont_Tags">{{collegedetail.TeacherInfo.Tags}}</view>
+                    </view>
+                </view>
+            </view>
+            <view wx:if="{{tabIndex == 0 && collegedetail}}" class="details_Introduction">
+                <h2>课程内容</h2>
+                <view class="v_html">
+                    <template is="wxParse" data="{{wxParseData:article.nodes}}"/>
+                </view>
+            </view>
+            </scroll-view>
+
+            <!-- 课程目录 -->
+            <scroll-view wx:if="{{tabIndex == 1}}" scroll-y style="height: {{(screenHeight + px(134))+'px'}};">
+            <view class="directory">
+                <block wx:for="{{collegedetail.CollegeClass}}" wx:key="{{index}}">
+                    <view class="directoryList {{directoryListIndex === index ? 'directoryListActive' : ''}}" @tap="changeDirectory" data-item="{{item}}" data-index="{{index}}">
+                        <h5>{{index > 8 ? index+1 : '0'+(index+1)}}</h5>
+                        <view class="directoryList_name">
+                            <view class="directoryList_name_">{{item.ClassName}}</view>
+                            <view wx:if="{{directoryListIndex === index}}" class="directoryList_name_zz">正在看</view>
+                        </view>
+                    </view>
+                </block>
+            </view>
+            </scroll-view>
+
+            <!-- 评价 -->
+            <scroll-view wx:if="{{tabIndex == 2}}" scroll-y style="height: {{screenHeight+'px'}};" bindscrolltolower="scrolltolower">
+            <view class="details_evaluation">
+                <view class="details_evaluationAll">
+                    <view>
+                        <h2>评价和提问</h2>
+                        <text>（{{getevaluate.length}}条）</text>
+                    </view>
+                    <view wx:if="{{getevaluate.length > 0}}" class="xinxin"><image wx:for="{{collegedetail.ComEvaluate}}" wx:key="{{index}}" src="/images/home/xin3.png" mode="aspectFill" lazy-load /></view>
+                    <view wx:else>暂无评价</view>
+                </view>
+                <block wx:for="{{getevaluate}}" wx:key="{{index}}">
+                    <view class="details_evaluation_List">
+                        <view class="evaluation_portrait"><image src="{{item.LogoUrl}}" mode="aspectFill" lazy-load/></view>
+                        <view class="evaluation_cont">
+                            <view class="evaluation_cont_title">
+                                <text>{{item.UserName}}</text>
+                                <view>
+                                    <image wx:for="{{item.Score}}" wx:key="{{index}}" src="/images/home/xin1.png" mode="aspectFill" lazy-load />
+                                    <image wx:for="{{5 - item.Score}}" wx:key="{{index}}" src="/images/home/xin2.png" mode="aspectFill" lazy-load />
+                                </view>
+                            </view>
+                            <view class="evaluation_content">
+                                {{item.Content}}
+                            </view>
+                        </view>
+                    </view>
+                </block>
+                <view wx:if="{{PageIndex >1}}" class="evaluationLoading">
+                    <van-loading wx:if="{{isGet}}" type="spinner" size="20px" color="#999999" />
+                    <text wx:else> ~没有更多了！</text>
+                </view>
+            </view>
+            </scroll-view>
+
+
+            <view wx:if="{{isModel}}" id="buyModel">
+                <view wx:if="{{!isIos}}" class="buyModel_cont">
+                    <image class="closed" @tap="buyMethod" src="/images/home/closed.png" mode="aspectFill" lazy-load/>
+                    <view class="buyModel_amount">
+                        <image src="/images/home/cbs.png" mode="aspectFill" lazy-load/>
+                        <h1>-{{collegedetail.SalePrice/100}}创币</h1>
+                    </view>
+                    <view class="buy_tip">
+                        这将消耗掉{{collegedetail.SalePrice/100}}枚创币，余额{{Balance/100}}创币，
+                        <text>\n购买的课程可在我的课程里找到</text>
+                    </view>
+                    <view class="buy_btn" @tap="payMethod">立即购买</view>
+                </view>
+            </view>
+
+
+            <view wx:if="{{collegedetail.SalePrice >0 && (OrderStatus == 102 || OrderStatus == 1)}}" class="buy">
+                <view class="buy_btn" @tap="buyMethod">{{isIos ? '立即咨询' : '立即购买'}}</view>
+            </view>
+            <view wx:elif="{{tabIndex == 2}}" class="buy">
+                <view class="buy_btn" @tap="evaluationMethod">评价和提问</view>
+            </view>
+
+        </view>
+</template>
+
+<script>
+import wepy from 'wepy'
+import { connect } from 'wepy-redux'
+import 'wepy-async-function'
+
+var WxParse = require('../../wxParse/wxParse.js');
+
+@connect({
+    userinfo(state) {
+        return state.counter.userinfo;
+    },
+    CollegeId(state) {
+        return state.counter.CollegeId;
+    },
+})
+    
+export default class Details extends wepy.page {
+    
+    config = {
+        navigationBarTitleText: '课程详情',
+        "usingComponents": {
+            "van-loading": "../../components/vant/loading/index",
+        }
+    }
+    
+    components = {
+    
+    }
+    
+    data = {
+        screenHeight:'', topNum:10, collegedetail:'', tabIndex:0, 
+        tabList:['课程简介','课程目录','学员评价'],
+        directoryListIndex: '',
+        videoIndexUrl:'',
+        isVideo:true, isVideoLoading:false, isVideoing: false,
+        collegedetails:'http://wxsnsdy.tc.qq.com/105/20210/snsdyvideodownload?filekey=30280201010421301f0201690402534804102ca905ce620b1241b726bc41dcff44e00204012882540400&bizid=1023&hy=SH&fileparam=302c020101042530230204136ffd93020457e3c4ff02024ef202031e8d7f02030f42400204045a320a0201000400',
+        isModel: false,
+        OrderStatus: 102,
+        Balance:'',
+        getevaluate:[],
+        isIos: false,
+        qrCode:'https://zcxy.oss-cn-beijing.aliyuncs.com/xcx/%E8%96%9B%E5%BE%AE%E4%BF%A1.jpg',
+        PageIndex:1, isGet: false
+    }
+    
+    computed = {
+    
+    }
+    
+    methods = {
+        scrolltoupper(){
+
+        },
+        changeTab(e){
+            this.topNum = 0
+            this.$apply()
+            this.tabIndex = parseInt(e.currentTarget.dataset.index)
+        },
+        changeDirectory(e){
+            // console.log(e)
+            // console.log(this.userinfo)
+            if(this.OrderStatus == 102){
+                wx.showToast({
+                    title: '您还没有购买此商品',
+                    icon: 'none',
+                    duration: 2000
+                })
+            }else{
+                this.isVideo = false
+                this.isVideoing = false
+                this.isVideoLoading = true
+                this.directoryListIndex = e.currentTarget.dataset.index
+                this.videoIndexUrl = e.currentTarget.dataset.item.VideoUrl
+                setTimeout(()=>{
+                    this.isVideoLoading = false
+                    this.$apply()
+                },2000)
+                wx.setKeepScreenOn({
+                    keepScreenOn: true
+                })
+            }
+            this.$apply()
+            
+        },
+        playVideo(){
+            this.isVideoing = this.collegedetail.CollegeType == '2' ? true : false
+            this.$apply()
+        },
+        buyMethod(){
+            if(this.isIos)
+            {
+                wx.makePhoneCall({
+                    phoneNumber:'135-6435-0056'
+                });
+            }
+            else{
+                this.isModel = !this.isModel
+                if(this.isModel){
+                    wepy.$Api.getcache().then(res=>{
+                        // console.log(res.data)
+                        if(res.data.IsSuccess){
+                            this.Balance = res.data.Data.Balance
+                            this.$apply()
+                        }
+                    })
+                }
+            }
+            this.$apply()
+        },
+        payMethod(){
+            wepy.$Api.getcache().then(res=>{
+                // console.log(res.data)
+                if(res.data.IsSuccess){
+                    if(res.data.Data.Balance/100 >= this.collegedetail.SalePrice/100){
+                        let list = {
+                            // GoodsId: 1,
+                            GoodsId: this.collegedetail.Id,
+                            PayType:3,
+                            GoodsType:1,
+                            openId: this.userinfo.OpenId
+                        }
+                        wepy.$Api.createorder(list).then(res=>{ 
+                            // prepay_id, nonce_str, paySign, timeStamp
+                            // console.log(res.data)
+                            if(res.data.Code === '2' || res.data.Code === '12'){
+                                this.onShow()
+                                wx.showToast({
+                                    title: '购买成功',
+                                    icon: 'success',
+                                    duration: 2000
+                                })
+                                this.$apply()
+                            }else{
+                                wx.showToast({
+                                    title: res.data.Message,
+                                    icon: 'none',
+                                    duration: 2000
+                                })
+                            }
+                            this.isModel = !this.isModel
+                            this.$apply()
+                        })
+                    }else{
+                        wx.showModal({
+                            title: '温馨提示',
+                            content: '余额不足',
+                            confirmText: '去充值',
+                            success (res) {
+                                if (res.confirm) {
+                                   wx.navigateTo({url:'/pages/my/topUp'})
+                                } else if (res.cancel) {
+                                // console.log('用户点击取消')
+                                }
+                            }
+                        })
+                    }
+                }
+                this.$apply()
+            })
+        },
+        evaluationMethod(){
+            wx.navigateTo({url:`/pages/home/evaluation?CategoryId=${this.collegedetail.Id}&ComEvaluate=${this.collegedetail.ComEvaluate}`})
+        },
+        clickQrCode(e){
+            var current = e.target.dataset.src;
+            wx.previewImage({
+                current: current, 
+                urls: [ current ] 
+            })
+        },
+        scrolltolower(){
+            if(this.isGet){
+                this.PageIndex ++
+                this.getevaluateMethod()
+            }
+        }
+    }
+
+    getevaluateMethod(){
+        wepy.$Api.getevaluate({CollegeId: this.collegedetail.Id, PageSize: 10, PageIndex: this.PageIndex}).then(res=>{
+            // console.log(res.data)
+            if(res.data.IsSuccess){
+                this.PageIndex == 1 ? this.getevaluate = res.data.Data : this.getevaluate = this.getevaluate.concat(res.data.Data)
+                this.isGet = res.data.Data.length == 0 ? false : true
+                this.$apply()
+            }
+        })
+    }
+    
+
+    // rpx转px
+    px(rpx) {
+        var systemInfo = wx.getSystemInfoSync();
+        return (rpx / 750) * systemInfo.windowWidth;
+    }
+
+
+    onLoad(){
+        wx.getSystemInfo({
+            success:(res)=> {
+                // console.log(res)
+                this.isIos = res.model.indexOf("iPhone")==-1 ? false : true;
+            }
+
+        })
+        let screenHeight = wx.getSystemInfoSync().windowHeight;
+        this.screenHeight = screenHeight - this.px(684)
+    }
+
+
+    onShow() {
+        // console.log(e)
+        wx.showLoading({
+            title: '加载中',
+        })
+
+        wepy.$Api.collegedetail(this.CollegeId).then(res=>{
+            // console.log(res.data)
+            wx.hideLoading()
+            this.collegedetail = res.data.Data
+            let html = res.data.Data.CollegeContent
+            WxParse.wxParse('article', 'html', html, this, 0);
+            this.getevaluateMethod()
+            // console.log(this.userinfo)
+            // 判断有没有绑定手机号
+            if(this.userinfo.Mobile == ''){
+                wx.showModal({
+                    title: '温馨提示',
+                    content: '请绑定手机号',
+                    confirmText: '去绑定',
+                    success (res) {
+                        if (res.confirm) {
+                            wx.navigateTo({url:'/pages/login/login'})
+                        } else if (res.cancel) {
+                        // console.log('用户点击取消')
+                        }
+                    }
+                })
+                if(this.collegedetail.SalePrice == 0){
+                    // 免费
+                    this.OrderStatus = 0 
+                }
+            }else{
+                // 判断是否购买
+                if(this.collegedetail.SalePrice > 0){
+                    let Goods = [{
+                        GoodsId: this.collegedetail.Id, GoodsType: this.collegedetail.GoodsType
+                    }]
+                    wepy.$Api.status({Goods}).then(res=>{
+                        // console.log(res.data)
+                        if(res.data.IsSuccess){
+                            this.OrderStatus = res.data.Data.Goods[0].OrderStatus
+                            if(res.data.Data.Goods[0].OrderStatus == 102){
+                                wx.showToast({
+                                    title: '您还没有购买此商品',
+                                    icon: 'none',
+                                    duration: 2000
+                                })
+                            }
+                            this.$apply()
+                        }else{
+
+                        }
+                    })
+                }else{
+                    // 免费
+                    this.OrderStatus = 0 
+                }
+            }
+            this.$apply()
+        })
+
+        
+    }
+
+
+    onShareAppMessage(res) {
+        if (res.from === 'button') {
+            // 来自页面内转发按钮
+            // console.log(res.target)
+        }
+        return {
+            title: '箴创学院',
+            path: '/pages/home/index?CollegeId='+this.CollegeId
+        }
+    }
+
+    
+}
+</script>
+
+<style lang='less'>
+@import "../../wxParse/wxParse.wxss";
+#details{
+    width: 100%; height: 100%; position: relative; box-sizing: border-box; padding-bottom: 134rpx; padding-top: 560rpx;
+}
+
+
+.details_Top{
+    width: 100%; position: fixed; top: 0; left: 0; background-color: white; z-index: 15;
+}
+
+.detailsVideo{
+    width: 100%;
+    #myVideo{
+        width: 100%; height: 450rpx;
+    }
+}
+.videoBanner{
+    width: 100%; height: 450rpx; position: absolute; top: 0; left: 0; z-index: 10;
+}
+.videoBanners{
+    width: 120rpx; height: 120rpx; border-radius: 50%; position: absolute; top: 165rpx; left: 315rpx; z-index: 10;
+}
+.videoLoading{
+    width: 100%; height: 450rpx; position: absolute; top: 0; left: 0; z-index: 10;
+    display: flex; justify-content: center; align-items: center;
+}
+
+.details_tab{
+    width: 100%; height: 100rpx; display: flex; justify-content: space-around; align-items: center;
+    border-bottom: 10rpx solid #F5F3F2; box-sizing: border-box; padding: 0 50rpx; background-color: white;
+    .tabList{
+        min-width: 100rpx; line-height: 86rpx;
+        view{
+            width: 100%; height: 2px; background-color: white;
+        }
+        .tabActive{
+            background-color: #FC6619;
+        }
+    }
+}
+
+// 课程信息
+.details_information{
+    width: 100%; min-height: 370rpx; box-sizing: border-box; border-bottom: 10rpx solid #F5F3F2;
+    padding: 0 30rpx;
+    .details_information_title{
+        width: 100%; min-height: 158rpx; box-sizing: border-box; padding: 30rpx 0; position: relative;
+        view{
+            width: 100%; display: flex; justify-content: space-between; align-items: center; color: #999999;
+            font-size: 24rpx; margin-bottom: 15rpx;
+            h1{ font-size: 36rpx; color: #333333; font-family:PingFangSC-Medium; font-weight:500; display: inline-block; width: 600rpx; }
+            .SalePrice{ width: 200rpx; display: flex; justify-content: flex-end; font-size: 36rpx; margin: 0; color: #F74D4D; font-family:PingFangSC-Semibold; font-weight:600;
+                image{width: 40rpx; height: 44rpx; margin-right: 10rpx;}
+            }
+            .del{text-decoration: line-through;}
+        }
+        .consulting{
+            width: 100rpx; height: 50rpx; text-align: center; border-radius: 10rpx; position: absolute; right: 0; top: 60rpx; color: #FC6619;
+        }
+    }
+    .details_information_user{
+        width: 100%; display: flex; justify-content: space-between; box-sizing: border-box; padding-bottom: 40rpx;
+        .user_pr{ width: 120rpx; height: 120rpx; border-radius: 50%; margin-top: 40rpx; }
+        .details_information_user_cont{
+            width: 532rpx; height: 100%; border-top: 1px solid #F5F3F2;
+            box-sizing: border-box; color: #999999; padding-top: 56rpx;
+            .details_information_user_cont_name{
+                width: 100%; display: flex; margin-bottom: 10rpx;
+                .details_name{ 
+                    font-size: 28rpx; color: #333333; font-family:PingFangSC-Medium; font-weight:500; 
+                }
+                .jiangshi{ width: 56rpx; height: 34rpx; margin-left: 10rpx; }
+            }
+            // .details_information_user_cont_name_title{
+               
+            // }
+            .details_information_user_cont_Tags{
+                width: 100%;
+                // display: -webkit-box;
+                // overflow: hidden;
+                // text-overflow: ellipsis;
+                // word-wrap: break-word;
+                // white-space: normal !important;
+                // -webkit-line-clamp: 1;
+                // -webkit-box-orient: vertical;
+            }
+        }
+    }
+}
+
+
+.details_Introduction{
+    width: 100%; box-sizing: border-box; padding: 40rpx 30rpx;
+    h2{ color: #333333; font-size: 36rpx;font-family:PingFangSC-Semibold; font-weight:600; }
+    .v_html{ width: 100%; margin-top: 40rpx; }
+}
+
+
+// 课程目录列表
+.directory{
+    width: 100%;
+    .directoryList{
+        width: 100%; height: 104rpx; display: flex; justify-content: space-between; align-items: center;
+        box-sizing: border-box; padding-left: 30rpx;
+        h5{color: #D7D7D7; }
+        .directoryList_name{
+            width: 665rpx; height: 100rpx; border-bottom: 1px solid #EEEEEE; box-sizing: border-box;
+            display: flex; justify-content: space-between; align-items: center; padding-right: 30rpx;
+            .directoryList_name_{
+                min-width: 450rpx; height: 30rpx; line-height: 30rpx;
+                display: -webkit-box;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                word-wrap: break-word;
+                white-space: normal !important;
+                -webkit-line-clamp: 1;
+                -webkit-box-orient: vertical;
+            }
+            .directoryList_name_zz{ min-width: 110rpx; color: #939393; text-align: right; }
+        }
+    }
+    .directoryListActive{
+        h5{color: #FC6619; font-family:PingFangSC-Semibold; font-weight:600; }
+        .directoryList_name_{font-family:PingFangSC-Semibold; font-weight:600;}
+    }
+}
+
+// 评价
+.details_evaluation{
+    width: 100%; box-sizing: border-box; padding: 40rpx 30rpx; 
+    .details_evaluationAll{
+        width: 100%; height: 40rpx; display: flex; justify-content: space-between; align-items: center;
+        h2{ color: #333333; font-size: 36rpx;font-family:PingFangSC-Semibold; font-weight:600; }
+        .xinxin{
+            width: 300rpx; height: 40rpx; display: flex; justify-content: flex-end; align-items: center;
+            image{width: 30rpx; height: 30rpx; margin-left: 10rpx;}
+        }
+    }
+    .details_evaluation_List{
+        width: 100%; display: flex; justify-content: space-between; padding-top: 30rpx;
+        .evaluation_portrait{
+            width: 70rpx; height: 70rpx;
+            image{width: 100%; height: 100%; border-radius: 50%;}
+        }
+        .evaluation_cont{
+            width: 594rpx; padding-bottom: 30rpx; border-bottom: 1px solid #EEEEEE;
+            .evaluation_cont_title{
+                width: 100%; height: 52rpx; display: flex; justify-content: space-between; align-items: center; color: #939393;
+                image{width: 20rpx; height: 20rpx; margin-left: 10rpx;}
+            }
+            .evaluation_content{
+                width: 100%;
+            }
+        }
+    }
+}
+.evaluationLoading{
+    width: 100%; height: 50rpx; text-align: center; padding-top: 10rpx;
+    font-size: 24rpx; color: #999999;
+}
+
+
+
+
+#buyModel{
+    width: 100%; height: 100%; background:rgba(0,0,0,0.32); position: fixed; top: 0; left: 0;
+    z-index: 20;
+    .buyModel_cont{
+        width: 100%; height: 498rpx; background-color: white; position: fixed; bottom: 0; left: 0;
+        text-align: center; box-sizing: border-box; padding-top: 114rpx;
+        .buyModel_amount{
+            display: flex; align-items: center; justify-content: center;
+            image{width: 80rpx; height: 90rpx; margin-right: 30rpx}
+            h1{font-size: 68rpx; font-family:PingFangSC-Semibold; font-weight:600;}
+        }
+        .buyModel_kefu{
+            image{width: 350rpx; height: 350rpx;}
+        }
+        .buy_tip{color: #999999; margin-top: 22rpx;}
+        .buy_tips{color: #999999; position: relative; top: -10rpx;}
+        .closed{
+            position: absolute; right: 30rpx; top: 30rpx;
+            width: 40rpx; height: 42rpx;
+        }
+        .buy_btn{
+            width: 690rpx; height: 94rpx; background:linear-gradient(270deg,rgba(255,94,146,1) 0%,rgba(255,135,52,1) 100%);
+            text-align: center; line-height: 94rpx; border-radius: 47rpx; color: #FFFFFF; font-size: 36rpx;
+            position: absolute; bottom: 40rpx; left: 30rpx;
+        }
+    }
+    .buyModel_conts{padding-top: 30rpx;}
+}
+
+
+.buy{
+    width: 100%; height: 134rpx; background-color: white; position: fixed; bottom: 0; left: 0; z-index: 11;
+    .buy_btn{
+        width: 690rpx; height: 94rpx; background:linear-gradient(270deg,rgba(255,94,146,1) 0%,rgba(255,135,52,1) 100%);
+        text-align: center; line-height: 94rpx; border-radius: 47rpx; color: #FFFFFF; font-size: 36rpx; margin: 20rpx auto;
+    }
+}
+
+
+
+</style>

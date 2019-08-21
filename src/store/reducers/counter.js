@@ -1,26 +1,17 @@
 import { handleActions } from 'redux-actions'
 import { INCREMENT, DECREMENT, ASYNC_INCREMENT } from '../types/counter'
 
+
+const defaultState = {
+  userinfo:'',
+  CollegeId:''
+}
+
 export default handleActions({
-  [INCREMENT] (state) {
-    return {
-      ...state,
-      num: state.num + 1
-    }
+  userinfos(state, action){
+    return { ...state, userinfo: action.payload }
   },
-  [DECREMENT] (state) {
-    return {
-      ...state,
-      num: state.num - 1
-    }
+  CollegeIds(state, action){
+    return { ...state, CollegeId: action.payload }
   },
-  [ASYNC_INCREMENT] (state, action) {
-    return {
-      ...state,
-      asyncNum: state.asyncNum + action.payload
-    }
-  }
-}, {
-  num: 0,
-  asyncNum: 0
-})
+}, defaultState)

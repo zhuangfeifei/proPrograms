@@ -1,0 +1,213 @@
+<template>
+    <view id="my">
+
+        <view class="my_nav">
+            <view class="portrait">
+                <image @tap="routers" src="{{userinfo.LogoUrl}}" mode="aspectFill" lazy-load/>
+                <view class="my_name">
+                    <h3 @tap="routers">{{userinfo.UserName}}</h3>
+                    <image @tap="routers" src="/images/home/xiugai.png" mode="aspectFill" lazy-load/>
+                    <view @tap="routers" wx:if="{{userinfo.Mobile}}" class="my_phone">{{userinfo.Mobile}}</view>
+                    <view wx:else @tap="goLogin" class="goLogin">绑定手机号 送10创币</view>
+                </view>
+            </view>
+            <view wx:if="{{!isIos}}" class="my_balance" @tap="topUp">
+                <view>
+                    <image src="/images/home/cb.png" mode="aspectFill" lazy-load/>
+                    <text>{{"余额: "+userinfo.Balance/100}}\n<text class="recharge">去充值</text></text>
+                    <image class="more" src="/images/home/Chevron.png" mode="aspectFill" lazy-load/>
+                </view>
+                <!-- <h5>去充值</h5> -->
+            </view>
+        </view>
+
+        <view class="my_function">
+            <!-- <view class="my_list">
+                <view>
+                    <image src="/images/home/youhuiquan.png" mode="aspectFill" lazy-load/>
+                    <text>优惠券</text>
+                </view>
+                <view>
+                    <text>10</text>
+                    <image src="/images/home/Chevron.png" mode="aspectFill" lazy-load/>
+                </view>
+            </view> -->
+            <view class="my_list" @tap="myCourse">
+                <view>
+                    <image src="/images/home/course.png" mode="aspectFill" lazy-load/>
+                    <text>我的课程</text>
+                </view>
+                <view>
+                    <image src="/images/home/Chevron.png" mode="aspectFill" lazy-load/>
+                </view>
+            </view>
+            <view class="my_list" @tap="businessCard">
+                <view>
+                    <image src="/images/home/card.png" mode="aspectFill" lazy-load/>
+                    <text>我的名片</text>
+                </view>
+                <view>
+                    <image src="/images/home/Chevron.png" mode="aspectFill" lazy-load/>
+                </view>
+            </view>
+        </view>
+
+    </view>
+</template>
+
+<script>
+import wepy from 'wepy'
+import { connect } from 'wepy-redux'
+import 'wepy-async-function'
+
+@connect({
+    
+})
+    
+export default class My extends wepy.page {
+    
+    config = {
+        navigationBarTitleText: '箴创学院'
+    }
+    
+    components = {
+    
+    }
+    
+    data = {
+        userinfo:'',asd:'', isIos:false
+    }
+    
+    computed = {
+    
+    }
+    
+    methods = {
+        routers(){
+            wx.navigateTo({url:'/pages/my/setup'})
+        },
+        goLogin(){
+            wx.navigateTo({url:'/pages/login/login'})
+        },
+        topUp(){
+            wx.navigateTo({url:'/pages/my/topUp'})
+        },
+        myCourse(){
+            wx.navigateTo({url:'/pages/my/myCourse'})
+        },
+        businessCard(){
+            if(this.userinfo.Mobile == ''){
+                wx.showModal({
+                    title: '温馨提示',
+                    content: '请绑定手机号',
+                    confirmText: '去绑定',
+                    success (res) {
+                        if (res.confirm) {
+                            wx.navigateTo({url:'/pages/login/login'})
+                        } else if (res.cancel) {
+                        // console.log('用户点击取消')
+                        }
+                    }
+                })
+            }else{
+                wx.navigateTo({url:'/pages/my/businessCard'})
+            }
+        },
+    }
+    
+    onShow() {
+        wx.getSystemInfo({
+            success:(res)=> {
+                // console.log(res)
+                this.isIos = res.model.indexOf("iPhone")==-1 ? false : true;
+            }
+
+        })
+        wepy.$Api.getcache().then(res=>{
+            // console.log(res.data)
+            if(res.data.IsSuccess){
+                res.data.Data.UserName = decodeURI(res.data.Data.UserName)
+                this.userinfo = res.data.Data
+                this.$apply()
+                wepy.$store.dispatch({
+                    type: 'userinfos',
+                    payload: res.data.Data
+                });
+            }else{
+                wx.showToast({
+                    title: res.data.Message,
+                    icon: 'none',
+                    duration: 2000
+                })
+            }
+            this.$apply()
+        })
+    }
+
+    onShareAppMessage(res) {
+        if (res.from === 'button') {
+            // 来自页面内转发按钮
+            // console.log(res.target)
+        }
+        return {
+            title: '箴创学院',
+            path: '/pages/home/my'
+        }
+    }
+}
+</script>
+
+<style lang='less'>
+#my{
+    width: 100%; height: 100%; box-sizing: border-box; padding-top: 10rpx; background-color: #F5F3F2;
+    position: fixed;
+}
+
+.my_nav{
+    width: 100%; height: 180rpx; background-color: white; box-sizing: border-box; padding-left: 30rpx; 
+    display: flex; justify-content: space-between; align-items: center; padding-right: 26rpx;
+    .portrait{
+        height: 120rpx;display: flex; align-items: center;
+        image{ width: 120rpx; height: 120rpx; border-radius: 50%; }
+        .my_name{
+            margin-left: 34rpx;
+            h3{font-size: 34rpx; color: #333333;font-family:PingFangSC-Medium; font-weight:500;}
+            image{ width: 28rpx; height: 30rpx; border-radius: 0; margin-left: 10rpx; position: relative; top: 5rpx; }
+            .my_phone{margin-top: 12rpx; color: #999999;}
+            .goLogin{margin-top: 12rpx; color: #FC6619;}
+        }
+    }
+    .my_balance{
+        text-align: right;
+        view{
+            display: flex; align-items: center;
+            image{width: 42rpx; height: 48rpx; margin-right: 22rpx;}
+            text{font-size: 24rpx; color: #333333; font-family:PingFangSC-Semibold; }
+            .recharge{margin-top: 8rpx;font-size: 28rpx; color: #FC6619;font-family:PingFangSC-Semibold;}
+            .more{width: 16rpx; height: 26rpx; margin-left: 22rpx; margin-right: 0;}
+        }
+        h5{color: #FC6619;}
+    }
+}
+
+
+.my_function{
+    width: 100%; margin-top: 10rpx; background-color: white;
+    .my_list{
+        width: 100%; height: 106rpx; display: flex; justify-content: space-between; align-items: center;
+        box-sizing: border-box; padding-left: 10rpx; padding-right: 30rpx; border-bottom: 1px solid #EEEEEE;
+        view:nth-child(1){
+            display: flex; align-items: center;
+            image{width: 104rpx; height: 104rpx; margin-right: 10rpx;}
+        }
+        view:nth-child(2){
+            display: flex; align-items: center; color: #999999;
+            image{width: 16rpx; height: 26rpx; margin-left: 22rpx;}
+        }
+    }
+    .my_list:last-child{border: 0;}
+}
+
+
+
+</style>

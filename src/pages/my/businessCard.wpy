@@ -1,0 +1,453 @@
+<template>
+    <view id="businessCard">
+
+        <canvas canvas-id="shareFrends" class="canvas" style="width: 750rpx; height: 1500rpx;"></canvas>
+
+        <view class="businessCardNav">
+            <image src="https://zcxy.oss-cn-beijing.aliyuncs.com/xcx/canvas.png" mode="aspectFill" lazy-load/>
+            <view class="businessCard_nav">
+                <image src="{{user.LogoUrl}}" mode="aspectFill" lazy-load />
+                <h3 wx:if="{{classificationList[0].checked}}">{{list.IdName}}</h3>
+                <view>
+                    <h4 wx:if="{{classificationList[1].checked}}">{{list.CompanyName}}</h4>
+                    <text wx:if="{{classificationList[2].checked}}">\n{{list.CompanyPosition}}</text>
+                </view>
+                <view>
+                    <text wx:if="{{classificationList[3].checked}}">{{list.Mobile}}</text>
+                    <text wx:if="{{classificationList[4].checked}}">\n{{list.Email}}</text>
+                    <text wx:if="{{classificationList[5].checked}}">\n{{list.LiveCity}}</text>
+                </view>
+            </view>
+        </view>
+        
+        <h1>对外展示的信息</h1>
+        <view class="classificationList">
+            <view class="classificationList_cont" wx:for="{{classificationList}}" wx:key="{{index}}">
+                <view class="classifications" @tap="changeclassification" data-index="{{index}}">
+                    <view>
+                        <text class="{{item.checked ? 'classificationActive' : ''}}">{{item.name}}</text>
+                    </view>
+                </view>
+                <image wx:if="{{item.checked}}" src="/images/home/Rectangle2.png" mode="aspectFill" lazy-load/>
+            </view>
+        </view>
+
+        <view class="setup_function">
+            <!-- <view class="setup_list">
+                <view><text>昵称</text></view>
+                <view>尹磊</view>
+            </view> -->
+            <view class="setup_list">
+                <view><text>姓名</text></view>
+                <view><input type="text" bindinput="bindName" value="{{list.IdName}}" placeholder="姓名" placeholder-style="color:#999999"/></view>
+            </view>
+            <view class="setup_list">
+                <view><text>公司</text></view>
+                <view><input type="text" bindinput="bindCompanyName" value="{{list.CompanyName}}" placeholder="公司" placeholder-style="color:#999999"/></view>
+            </view>
+            <view class="setup_list">
+                <view><text>职位</text></view>
+                <view><input type="text" bindinput="bindCompanyPosition" value="{{list.CompanyPosition}}" placeholder="职位" placeholder-style="color:#999999"/></view>
+            </view>
+            <view class="setup_list">
+                <view><text>邮箱</text></view>
+                <view><input type="text" bindinput="bindEmail" value="{{list.Email}}" placeholder="邮箱" placeholder-style="color:#999999"/></view>
+            </view>
+            <view class="setup_list">
+                <view><text>城市</text></view>
+                <view><input type="text" bindinput="bindLiveCity" value="{{list.LiveCity}}" placeholder="地址" placeholder-style="color:#999999"/></view>
+            </view>
+        </view>
+
+        <view class="login_btn" @tap="filePath">保存名片</view>
+
+        <view wx:if='{{hidden}}' @tap="isShow" class='preview' style="height: {{screenHeight+'px'}};">
+            <image @tap.stop='q' src='{{prurl}}' mode='widthFix'/>
+            <button type='primary' size='mini' @tap.stop='saves'>保存分享图</button>
+            <view wx:if="{{isXaingce}}" class="xiangce">
+                <view>您还没有授权获取相册!</view>
+                <button type='primary' size='mini' open-type="openSetting">去授权</button>
+            </view>
+        </view>
+
+
+
+    </view>
+</template>
+
+<script>
+import wepy from 'wepy'
+import { connect } from 'wepy-redux'
+import 'wepy-async-function'
+
+@connect({
+    
+})
+    
+export default class BusinessCard extends wepy.page {
+    
+    config = {
+        navigationBarTitleText: '我的名片'
+    }
+    
+    components = {
+    
+    }
+    
+    data = {
+        user:'',path:'',
+        classificationList:[
+            {name:'姓名', checked: true},{name:'公司', checked: true},
+            {name:'职位', checked: true},{name:'电话', checked: true},
+            {name:'邮箱', checked: true},{name:'地址', checked: true}], 
+        classificationIndex: 0,
+        hidden: false, prurl: '', screenHeight:'',
+        list: {
+            Id: '', UserName:'', LogoBase64:'', IdCard:'',
+            IdName:'', Email:'', Sex:'', CompanyName:'',
+            CompanyPosition:'', CompanyExperience:'',
+            LiveProvince:'', LiveCity:'', Mobile:''
+        },
+        files:[],
+        isXaingce: false
+    }
+    
+    computed = {
+    
+    }
+    
+    methods = {
+        q(){},
+        isShow(){
+            this.hidden = false
+            this.$apply()
+        },
+        bindName(e){
+            this.list.IdName = e.detail.value
+            this.canvas()
+            this.$apply()
+        },
+        bindCompanyName(e){
+            this.list.CompanyName = e.detail.value
+            this.canvas()
+            this.$apply()
+        },
+        bindCompanyPosition(e){
+            this.list.CompanyPosition = e.detail.value
+            this.canvas()
+            this.$apply()
+        },
+        bindEmail(e){
+            console.log(e.detail.value)
+            this.list.Email = e.detail.value
+            this.canvas()
+            this.$apply()
+        },
+        bindLiveCity(e){
+            this.list.LiveCity = e.detail.value
+            this.canvas()
+            this.$apply()
+        },
+        changeclassification(e){
+            this.classificationList[e.currentTarget.dataset.index].checked = !this.classificationList[e.currentTarget.dataset.index].checked 
+            this.canvas()
+            this.$apply()
+        },
+        filePath(){
+            wx.showLoading({
+                title: '努力生成中...'
+            })
+            wx.canvasToTempFilePath({
+                x: 0,
+                y: 0,
+                width: 345,
+                height: 440,
+                destWidth: 345,
+                destHeight: 440,
+                canvasId: 'shareFrends',
+                success: (res) => {
+                    // console.log(res)
+                    this.hidden = true
+                    this.prurl = res.tempFilePath
+                    this.$apply()
+                    wx.hideLoading()
+                }
+            })
+        },
+        saves() {
+            //生产环境时 记得这里要加入获取相册授权的代码
+            wx.saveImageToPhotosAlbum({
+                filePath: this.prurl,
+                success:(res)=> {
+                    // console.log(res)
+                    wx.showModal({
+                    content: '图片已保存到相册，赶紧晒一下吧~',
+                    showCancel: false,
+                    confirmText: '好哒',
+                    confirmColor: '#72B9C3',
+                    success: (res)=> {
+                        if (res.confirm) {
+                            this.hidden = false
+                            this.$apply()
+                        }
+                    }
+                    })
+                },
+                fail: (res)=> {
+                    // console.log(res)
+                    // if (res.errMsg === "saveImageToPhotosAlbum:fail auth deny") {
+                        this.isXaingce = true
+                        this.$apply()
+                        // console.log("打开设置窗口");
+                        // wx.openSetting({
+                        //     success(settingdata) {
+                        //         console.log(settingdata)
+                        //         if (settingdata.authSetting["scope.writePhotosAlbum"]) {
+                        //             console.log("获取权限成功，再次点击图片保存到相册")
+                        //         } else {
+                        //             console.log("获取权限失败")
+                        //         }
+                        //     }
+                        // })
+                    // }
+                }
+            })
+            
+        }
+    }
+    
+    onShow() {
+        this.isXaingce = false
+        wepy.$Api.getUser().then(res=>{
+            // console.log(res.data)
+            if(res.data.IsSuccess){
+                this.user = res.data.Data
+                this.list.userinfoend = res.data.Data
+                this.list.IdName = res.data.Data.IdName
+                this.list.Sex = res.data.Data.Sex
+                this.list.Mobile = res.data.Data.Mobile
+                this.list.Email = res.data.Data.Email
+                this.list.CompanyName = res.data.Data.CompanyName
+                this.list.CompanyProduct = res.data.Data.CompanyProduct
+                this.list.CompanyPosition = res.data.Data.CompanyPosition
+                this.list.LiveCity = res.data.Data.LiveCity
+                let screenHeight = wx.getSystemInfoSync().windowHeight;
+                this.screenHeight = screenHeight
+                this.canvasMethod()
+                this.$apply()
+
+            }
+        })
+
+    }
+
+
+    canvasMethod(){
+        wx.showLoading({
+            title: '加载中...'
+        })
+        let promise1 = new Promise( (resolve, reject)=> {
+            wx.getImageInfo({
+                src: this.user.LogoUrl,
+                success: (res)=> {
+                    // console.log(res)
+                    resolve(res);
+                }
+            })
+        });
+        let promise2 = new Promise( (resolve, reject)=> {
+            wx.getImageInfo({
+                src: 'https://zcxy.oss-cn-beijing.aliyuncs.com/xcx/canvas.png',
+                success: (res)=> {
+                    // console.log(res)
+                    resolve(res);
+                }
+            })
+        });
+        Promise.all([
+            promise1, promise2
+        ]).then(res=>{
+            // console.log(res)
+            wx.hideLoading()
+            this.files = res
+            this.canvas()
+            
+        })
+    }
+
+    canvas(){
+        this.isClick = true
+        let ctx = wx.createCanvasContext('shareFrends');
+        
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, 345, 1000);
+        ctx.drawImage(
+            '../../images/home/zhen.png', 97.5, 20, 150, 45
+        );
+        ctx.drawImage(
+            this.files[1].path, 15, 80, 315, 185
+        );
+        ctx.save()
+        ctx.beginPath()
+        ctx.arc(290,120, 25, Math.PI * 2, false)
+        ctx.clip()
+        ctx.drawImage(
+            this.files[0].path, 265, 95, 50, 50
+        );
+        ctx.restore()
+        
+        ctx.setFontSize(18)
+        ctx.setFillStyle('white');
+        this.classificationList[0].checked ? ctx.fillText(this.list.IdName, 30, 130) : ''
+        ctx.setFontSize(14)
+        this.classificationList[1].checked ? ctx.fillText(this.list.CompanyName, 30, 155) : ''
+        this.classificationList[2].checked ? ctx.fillText(this.list.CompanyPosition, 30, 175) : ''
+        this.classificationList[3].checked ? ctx.fillText(this.list.Mobile, 30, 210) : ''
+        this.classificationList[4].checked ? ctx.fillText(this.list.Email, 30, 230) : ''
+        this.classificationList[5].checked ? ctx.fillText(this.list.LiveCity, 30, 250) : ''
+
+        ctx.drawImage(
+            '../../images/home/xcxcode.jpg', 122.5, 280, 100, 100
+        );
+        ctx.setFillStyle('black');
+        ctx.fillText('扫码加入箴创学院小程序 生成属于自己的跨境名片', 15, 410)
+        ctx.draw()
+    }
+
+    onUnload(){
+        // console.log(this.list)
+        wepy.$Api.update(this.list).then(res=>{
+            // console.log(res.data)
+            if(res.data.IsSuccess){
+                
+            }
+            this.$apply()
+        })
+    }
+
+    onShareAppMessage(res) {
+        if (res.from === 'button') {
+            // 来自页面内转发按钮
+            console.log(res.target)
+        }
+        return {
+            title: '箴创学院',
+            path: '/pages/home/index'
+        }
+    }
+    
+}
+</script>
+
+<style lang='less'>
+#businessCard{
+    width: 100%; min-height: 100%; box-sizing: border-box; padding: 0 30rpx; padding-bottom: 30rpx;
+    position: relative; padding-bottom: 150rpx;
+}
+
+
+
+.businessCardNav{
+    width: 100%; height: 400rpx; position: relative; margin: 40rpx 0;
+    image{width: 100%; height: 100%;}
+}
+.businessCard_nav{
+    width: 100%; height: 400rpx; position: absolute; top: 0; left: 0;
+    box-sizing: border-box; padding-top: 64rpx;
+    border-radius:12px; text-align: right; padding-right: 40rpx; color: white;
+    image{
+        width: 100rpx; height: 100rpx; border-radius: 50%; position: absolute; top: 40rpx; left: 40rpx;
+    }
+    h3{font-size: 36rpx;font-family:PingFangSC-Semibold; font-weight:600;}
+    view:nth-child(3){
+        margin-top: 10rpx; margin-bottom: 54rpx;
+        h4{font-family:PingFangSC-Semibold; font-weight:600;}
+    }
+}
+
+
+
+
+h1{ color: #333333; font-size: 36rpx;font-family:PingFangSC-Semibold; font-weight:600; }
+
+
+.classificationList{
+    width: 100%; display: flex; justify-content: space-between; flex-wrap: wrap; box-sizing: border-box;
+    .classificationList_cont{
+        width: 212rpx; height: 72rpx; background-color: #F5F5F5; border-radius: 4rpx; text-align: center; position: relative;
+        margin-top: 26rpx;  color: #000000; font-size: 28rpx;
+        .classificationActive{color: #FC6619;}
+        .classifications{
+            width: 100%; height: 100%; display: flex; justify-content: center; align-items: center;
+            position: absolute; top: 0; left: 0; z-index: 10;
+        }
+        image{width: 100%; height: 100%; position: absolute; top: 0; left: 0; z-index: 1;}
+    }
+}
+
+
+.setup_function{
+    width: 100%; margin-top: 30rpx; background-color: white; 
+    .setup_list{
+        width: 100%; height: 104rpx; display: flex; justify-content: space-between; align-items: center;
+        box-sizing: border-box; padding: 30rpx; border-bottom: 1px solid #EEEEEE;
+        view:nth-child(1){
+            display: flex; align-items: center;
+        }
+        view:nth-child(2){
+            width: 500rpx; text-align: right; line-height: 104rpx; color: #999999;
+            input{text-align: right; width: 500rpx;}
+        }
+    }
+}
+
+
+.login_btn{
+    width: 690rpx; height: 94rpx; background:linear-gradient(270deg,rgba(255,94,146,1) 0%,rgba(255,135,52,1) 100%);
+    text-align: center; line-height: 94rpx; border-radius: 47rpx; color: #FFFFFF; font-size: 36rpx;
+    position: fixed; bottom: 30rpx; left: 30rpx; z-index: 10;
+}
+
+
+
+
+.canvas{
+    position: absolute; top: -1600rpx; left: 0;
+}
+
+
+
+.preview {
+  width: 100%;
+  background: rgba(0,0,0,.9);
+  position: fixed;top: 0; left: 0;
+  z-index: 20;
+}
+.preview image{
+  width: 750rpx;
+  position: absolute;
+  top: 5%;
+  left: 0;
+  z-index: 3;
+}
+.preview button{
+  width: 40%; height: 80rpx; line-height: 80rpx; font-size: 28rpx;
+  position: absolute;
+  bottom: 50rpx;
+  left: 30%;
+  
+}
+
+
+
+
+.xiangce{
+    width: 100%; height: 100%; position: fixed; bottom: 0; left: 0; background: rgba(0,0,0,.5); z-index: 100;
+    view{
+        width: 100%; height: 250rpx; text-align: center; padding-top: 50rpx; box-sizing: border-box; background-color: white;
+        position: absolute; bottom: 0; left: 0;
+    }
+}
+
+
+</style>

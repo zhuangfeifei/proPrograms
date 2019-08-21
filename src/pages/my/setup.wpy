@@ -1,0 +1,231 @@
+<template>
+    <view id="setup">
+
+        <view class="setup_nav">
+            <view class="portrait">
+                <image src="{{userinfo.LogoUrl}}" mode="aspectFill" lazy-load/>
+                <view class="setup_name">
+                    <h3>{{userinfo.UserName}}</h3>
+                    <view wx:if="{{userinfo.Mobile}}" class="setup_phone">{{userinfo.Mobile}}</view>
+                    <view wx:else @tap="goLogin" class="goLogin">绑定手机号 送10创币</view>
+                </view>
+            </view>
+        </view>
+
+
+        <view class="setup_function">
+            <!-- <view class="setup_list">
+                <view><text>昵称</text></view>
+                <view><input type="text" bindinput="bindNiName" placeholder="昵称" placeholder-style="color:#999999"/></view>
+            </view> -->
+            <view class="setup_list">
+                <view><text>姓名</text></view>
+                <view><input type="text" bindinput="bindName" value="{{list.IdName}}" placeholder="姓名" placeholder-style="color:#999999"/></view>
+            </view>
+            <view class="setup_list">
+                <view><text>性别</text></view>
+                <view @tap="changeSex">{{sexList[list.Sex - 1] || '性别'}}</view>
+            </view>
+            <view class="setup_list">
+                <view><text>公司</text></view>
+                <view><input type="text" bindinput="bindCompanyName" value="{{list.CompanyName}}" placeholder="公司" placeholder-style="color:#999999"/></view>
+            </view>
+            <view class="setup_list">
+                <view><text>主营产品</text></view>
+                <view><input type="text" bindinput="bindCompanyProduct" value="{{list.CompanyProduct}}" placeholder="主营产品" placeholder-style="color:#999999"/></view>
+            </view>
+            <view class="setup_list">
+                <view><text>职位</text></view>
+                <view><input type="text" bindinput="bindCompanyPosition" value="{{list.CompanyPosition}}" placeholder="职位" placeholder-style="color:#999999"/></view>
+            </view>
+            <view class="setup_list">
+                <view><text>邮箱</text></view>
+                <view><input type="text" bindinput="bindEmail" value="{{list.Email}}" placeholder="邮箱" placeholder-style="color:#999999"/></view>
+            </view>
+            <view class="setup_list">
+                <view><text>城市</text></view>
+                <view><input type="text" bindinput="bindLiveCity" value="{{list.LiveCity}}" placeholder="地址" placeholder-style="color:#999999"/></view>
+            </view>
+        </view>
+
+        <!-- <view class="sub_btn" @tap="update">保存</view> -->
+
+    </view>
+</template>
+
+<script>
+import wepy from 'wepy'
+import { connect } from 'wepy-redux'
+import 'wepy-async-function'
+
+@connect({
+    userinfo(state) {
+        return state.counter.userinfo;
+    },
+})
+    
+export default class Setup extends wepy.page {
+    
+    config = {
+        navigationBarTitleText: '设置'
+    }
+    
+    components = {
+    
+    }
+    
+    data = {
+        userinfoend:'',
+        list: {
+            Id: '', UserName:'', LogoBase64:'', IdCard:'',
+            IdName:'', Email:'', Sex:'', CompanyName:'',
+            CompanyPosition:'', CompanyExperience:'',
+            LiveProvince:'', LiveCity:''
+        },
+        sexList: ['男', '女']
+    }
+    
+    computed = {
+    
+    }
+    
+    methods = {
+        goLogin(){
+            wx.navigateTo({url:'/pages/login/login'})
+        },
+        changeSex(){
+            wx.showActionSheet({
+                itemList: ['男', '女'],
+                success:(res)=> {
+                    this.list.Sex = res.tapIndex == 0 ? 1 : 2
+                    this.$apply()
+                },
+                fail: (res)=> {
+                    // console.log(res.errMsg)
+                    this.$apply()
+                }
+            })
+        },
+        bindNiName(e){
+            // console.log(e)
+            this.list.UserName = e.detail.value
+        },
+        bindName(e){
+            this.list.IdName = e.detail.value
+        },
+        bindSex(e){
+            this.list.Sex = e.detail.value
+        },
+        bindCompanyName(e){
+            this.list.CompanyName = e.detail.value
+        },
+        bindCompanyProduct(e){
+            this.list.CompanyProduct = e.detail.value
+        },
+        bindLiveProvince(e){
+            this.list.LiveProvince = e.detail.value
+        },
+        bindCompanyPosition(e){
+            this.list.CompanyPosition = e.detail.value
+        },
+        bindEmail(e){
+            this.list.Email = e.detail.value
+        },
+        bindLiveCity(e){
+            this.list.LiveCity = e.detail.value
+        },
+    }
+
+    onUnload(){
+        // console.log(this.list)
+        wepy.$Api.update(this.list).then(res=>{
+            // console.log(res.data)
+            if(res.data.IsSuccess){
+                // wx.showToast({
+                //     title: '保存成功',
+                //     icon: 'success',
+                //     duration: 2000
+                // })
+                // this.userinfoend = res.data.Data
+            }
+            this.$apply()
+        })
+    }
+    
+    onLoad() {
+        this.list.Id = this.userinfo.UserId
+
+        wepy.$Api.getUser(this.list).then(res=>{
+            // console.log(res.data)
+            if(res.data.IsSuccess){
+                this.list.userinfoend = res.data.Data
+                this.list.IdName = res.data.Data.IdName
+                this.list.Sex = parseFloat(res.data.Data.Sex)
+                this.list.CompanyName = res.data.Data.CompanyName
+                this.list.CompanyProduct = res.data.Data.CompanyProduct
+                this.list.CompanyPosition = res.data.Data.CompanyPosition
+                this.list.LiveCity = res.data.Data.LiveCity
+                this.$apply()   
+            }
+        })
+    }
+
+    onShareAppMessage(res) {
+        if (res.from === 'button') {
+            // 来自页面内转发按钮
+            console.log(res.target)
+        }
+        return {
+            title: '箴创学院',
+            path: '/pages/home/index'
+        }
+    }
+}
+</script>
+
+<style lang='less'>
+#setup{
+    width: 100%; height: 100%; box-sizing: border-box; padding-top: 10rpx; background-color: #F5F3F2;
+}
+
+
+.setup_nav{
+    width: 100%; height: 180rpx; background-color: white; box-sizing: border-box; padding-left: 30rpx; 
+    display: flex; align-items: center; padding-right: 26rpx;
+    .portrait{
+        height: 120rpx;display: flex; align-items: center;
+        image{ width: 120rpx; height: 120rpx; border-radius: 50%; }
+        .setup_name{
+            margin-left: 34rpx;
+            h3{font-size: 34rpx; color: #333333;font-family:PingFangSC-Medium; font-weight:500;}
+            .setup_phone{margin-top: 12rpx; color: #999999;}
+            .goLogin{margin-top: 12rpx; color: #FC6619;}
+        }
+    }
+}
+
+.setup_function{
+    width: 100%; margin-top: 10rpx; background-color: white;
+    .setup_list{
+        width: 100%; height: 104rpx; display: flex; justify-content: space-between; align-items: center;
+        box-sizing: border-box; padding: 30rpx; border-bottom: 1px solid #EEEEEE;
+        view:nth-child(1){
+            display: flex; align-items: center;
+        }
+        view:nth-child(2){
+            width: 500rpx; text-align: right; line-height: 104rpx; color: #999999;
+            input{text-align: right; width: 500rpx;}
+        }
+    }
+    .setup_list:last-child{border: 0;}
+}
+
+
+.sub_btn{
+    width: 690rpx; height: 94rpx; background:linear-gradient(270deg,rgba(255,94,146,1) 0%,rgba(255,135,52,1) 100%);
+    text-align: center; line-height: 94rpx; border-radius: 47rpx; color: #FFFFFF; font-size: 36rpx; margin: 0 auto;
+    margin-top: 56rpx;
+}
+
+
+</style>

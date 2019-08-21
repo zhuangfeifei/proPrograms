@@ -1,0 +1,214 @@
+<template>
+    <view id="topUp">
+
+        <view class="my_nav">
+            <view class="portrait">
+                <image @tap="routers" src="/images/home/cbs.png" mode="aspectFill" lazy-load/>
+                <view class="my_name">
+                    <h3 @tap="routers">创币</h3>
+                    <view>可用于购买课程</view>
+                </view>
+            </view>
+            <view class="my_balance">
+                <view>
+                    <text>{{userinfo.Balance/100}}</text>
+                </view>
+            </view>
+        </view>
+
+        <view class="topUp_amount">
+            <h2>选择充值数目</h2>
+            <view class="amountList">
+                <view class="amountList_cont" wx:for="{{amountList}}" wx:key="{{index}}">
+                    <view class="amounts" @tap="changeAmount" data-index="{{index}}">
+                        <view>
+                            <h5 class="{{amountIndex == index ? 'amountActive' : ''}}">{{item}}<text>枚</text></h5>
+                            <text>\n￥{{item}}</text>
+                        </view>
+                    </view>
+                    <image wx:if="{{amountIndex == index}}" src="/images/home/Rectangle.png" mode="aspectFill" lazy-load/>
+                </view>
+            </view>
+        </view>
+        <view class="tip">
+            <text>Tip：</text>
+            <text>\n1.创币可用于购买箴创学院小程序内所有课程</text>
+            <text>\n2.创币为虚拟币，充值后创币不会过期，但无法提现和转赠他人</text>
+            <text>\n3.1人民币=1创币</text>
+            <text>\n4.小程序内仅限安卓用户充值，ios用户请联系箴创运营小二购买课程。</text>
+        </view>
+
+        <view class="sub_btn" @tap="upMethod">立即充值</view>
+
+    </view>
+</template>
+
+<script>
+import wepy from 'wepy'
+import { connect } from 'wepy-redux'
+import 'wepy-async-function'
+
+@connect({
+    
+})
+    
+export default class TopUp extends wepy.page {
+    
+    config = {
+        navigationBarTitleText: '充值'
+    }
+    
+    components = {
+    
+    }
+    
+    data = {
+        amountList:[8,68,188,288,388,588], amountIndex: 0,
+        userinfo:''
+    }
+    
+    computed = {
+    
+    }
+    
+    methods = {
+        changeAmount(e){
+            this.amountIndex = e.currentTarget.dataset.index
+            this.$apply()
+        },
+        upMethod(){ 
+            wx.showLoading({
+                title: '加载中',
+            })
+
+            let list = {
+                // GoodsId: 1,
+                GoodsId: this.amountList[this.amountIndex]*100,
+                PayType:4,
+                GoodsType:3,
+                openId: this.userinfo.OpenId
+            }
+            wepy.$Api.createorder(list).then(res=>{ 
+                // prepay_id, nonce_str, paySign, timeStamp
+                // console.log(res.data)
+                wx.hideLoading()
+                if(res.data.IsSuccess){
+                    let datas = res.data.Data.PayExtend.split(',')
+                    // console.log(datas)
+                    wx.requestPayment({
+                        timeStamp: datas[3],
+                        nonceStr: datas[1],
+                        package: `prepay_id=${datas[0]}`,
+                        signType: 'MD5',
+                        paySign: datas[2],
+                        success:res=> { 
+                            // console.log(res)
+                            this.onShow()
+                            wx.navigateTo({
+                                url: '/pages/my/successup'
+                            });
+                        },
+                        fail (res) { }
+                    })
+                }else{
+                    wx.showToast({
+                        title: res.data.Message,
+                        icon: 'none',
+                        duration: 2000
+                    })
+                }
+                
+            })
+        }
+    }
+    
+    onShow() {
+        wepy.$Api.getcache().then(res=>{
+            // console.log(res.data)
+            if(res.data.IsSuccess){
+                this.userinfo = res.data.Data
+                wepy.$store.dispatch({
+                    type: 'userinfos',
+                    payload: res.data.Data
+                });
+            }
+            this.$apply()
+        })
+    }
+
+    onShareAppMessage(res) {
+        if (res.from === 'button') {
+            // 来自页面内转发按钮
+            console.log(res.target)
+        }
+        return {
+            title: '箴创学院',
+            path: '/pages/home/index'
+        }
+    }
+}
+</script>
+
+<style lang='less'>
+#topUp{
+    width: 100%; min-height: 100%; box-sizing: border-box; padding-top: 10rpx; background-color: #F5F3F2;
+}
+
+
+.my_nav{
+    width: 100%; height: 180rpx; background-color: white; box-sizing: border-box; padding-left: 30rpx; 
+    display: flex; justify-content: space-between; align-items: center; padding-right: 26rpx;
+    .portrait{
+        height: 90rpx;display: flex; align-items: center;
+        image{ width: 80rpx; height: 90rpx; }
+        .my_name{
+            margin-left: 34rpx; color: #999999;
+            h3{font-size: 34rpx; color: #333333;font-family:PingFangSC-Medium; font-weight:500;}
+        }
+    }
+    .my_balance{
+        text-align: right; height: 90rpx;
+        view{
+            image{width: 42rpx; height: 48rpx; margin-right: 22rpx;}
+            text{font-size: 40rpx; color: #333333;font-family:PingFangSC-Semibold;font-weight:600;}
+        }
+    }
+}
+
+
+.topUp_amount{
+    width: 100%; padding: 30rpx; box-sizing: border-box;
+    background-color: white; margin-top: 10rpx;
+    h2{ color: #333333; font-size: 36rpx;font-family:PingFangSC-Semibold; font-weight:600; }
+    .amountList{
+        width: 100%; display: flex; justify-content: space-between; flex-wrap: wrap; box-sizing: border-box; text-align: center;
+        .amountList_cont{
+            width: 212rpx; height: 120rpx; background-color: #F5F5F5; border-radius: 4rpx; text-align: center; position: relative;
+            margin-top: 26rpx;  color: #939393; font-size: 24rpx;
+            h5{font-size: 36rpx; color: #000000;}
+            .amountActive{color: #FC6619;}
+            .amounts{
+                width: 100%; height: 100%; display: flex; justify-content: center; align-items: center;
+                 position: absolute; top: 0; left: 0; z-index: 10; 
+                 text{font-size: 28rpx;}
+            }
+            image{width: 100%; height: 100%; position: absolute; top: 0; left: 0; z-index: 1;}
+        }
+    }
+}
+
+
+.tip{
+    width: 690rpx; margin: 30rpx auto; font-size: 24rpx;
+}
+
+
+.sub_btn{
+    width: 690rpx; height: 94rpx; background:linear-gradient(270deg,rgba(255,94,146,1) 0%,rgba(255,135,52,1) 100%);
+    text-align: center; line-height: 94rpx; border-radius: 47rpx; color: #FFFFFF; font-size: 36rpx;
+    position: absolute; bottom: 40rpx; left: 30rpx;z-index: 100;
+}
+
+
+
+</style>

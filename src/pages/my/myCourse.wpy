@@ -1,0 +1,153 @@
+<template>
+    <view id="myCourse">
+
+        <view class="classificationAll">
+            <block wx:if="{{myCourseList}}" wx:for="{{myCourseList}}" wx:key="{{index}}">
+                <view class="classificationAllList" @tap="details" data-item="{{item}}">
+                    <image src="{{item.SmallImageUrl}}" mode="aspectFill" lazy-load/>
+                    <view class="classificationAllList_cont">
+                        <view class="classificationAllList_cont_title">
+                            <view>{{item.Title}}</view>
+                            <!-- <tex>已看44%</tex> -->
+                        </view>
+                        <!-- <view class="classificationAllList_cont_">AntV 是蚂蚁金服全新一代数据可视化解</view> -->
+                        <view class="classificationAllList_lecturer">
+                            <!-- <text wx:if="{{item.CollagePrice > 0}}">¥{{item.CollagePrice / 100}}</text> -->
+                            <!-- <image src="/images/home/free.png" /> -->
+                            <image  src="/images/home/buyend.png" />
+                            <text> 讲师 | {{item.TeacherName}}</text>
+                        </view>
+                    </view>
+                </view>
+            </block>
+        </view>
+
+        <view wx:if="{{myCourseList.length == 0}}" class="noClassificationAllList">
+            <image src="/images/home/undraw_reading_list_4boi.png" mode="aspectFill" lazy-load/>
+            <text>\n您还没有课程！</text>
+        </view>
+
+    </view>
+</template>
+
+<script>
+import wepy from 'wepy'
+import { connect } from 'wepy-redux'
+import 'wepy-async-function'
+
+@connect({
+    
+})
+    
+export default class MyCourse extends wepy.page {
+    
+    config = {
+        navigationBarTitleText: '我的课程'
+    }
+    
+    components = {
+    
+    }
+    
+    data = {
+        myCourseList:[]
+    }
+    
+    computed = {
+    
+    }
+    
+    methods = {
+        details(e){
+            wepy.$store.dispatch({
+                type: 'CollegeIds',
+                payload: e.currentTarget.dataset.item.CollegeId
+            });
+            wx.navigateTo({url:`/pages/home/details`})
+        },
+    }
+    
+    onLoad() {
+        wepy.$Api.myCourse({PageSize:100, PageIndex: 1}).then(res=>{
+            // console.log(res.data)
+            if(res.data.IsSuccess){
+                this.myCourseList = res.data.Data
+            }
+            this.$apply()
+        })
+    }
+
+    onShareAppMessage(res) {
+        if (res.from === 'button') {
+            // 来自页面内转发按钮
+            console.log(res.target)
+        }
+        return {
+            title: '箴创学院',
+            path: '/pages/home/index'
+        }
+    }
+}
+</script>
+
+<style lang='less'>
+#myCourse{
+    width: 100%; min-height: 100%;
+}
+
+
+.classificationAll{
+    width: 100%; box-sizing: border-box; padding: 0 30rpx;
+    h2{ color: #333333; font-size: 36rpx;font-family:PingFangSC-Semibold; font-weight:600; }
+    .classificationAllList{
+        width: 100%; height: 198rpx; display: flex; justify-content: space-between; align-items: center;
+        image{width: 200rpx; height: 120rpx; border-radius: 10rpx;}
+        .classificationAllList_cont{
+            width: 452rpx; height: 100%; border-bottom: 1px solid #EEEEEE; box-sizing: border-box; padding-top: 50rpx;
+            .classificationAllList_cont_title{
+                width: 100%; height: 30rpx; display: flex; justify-content: space-between; align-items: center;
+                color: #999999; font-size: 24rpx;
+                view{
+                    max-width: 270rpx; height: 100%; line-height: 30rpx; font-size: 28rpx; color: #333333;
+                    display: -webkit-box;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                    word-wrap: break-word;
+                    white-space: normal !important;
+                    -webkit-line-clamp: 1;
+                    -webkit-box-orient: vertical;
+                }
+            }
+            // .classificationAllList_cont_{
+            //     width: 100%; height: 30rpx; line-height: 30rpx; font-size: 24rpx; color: #999999;
+            //     display: -webkit-box; margin: 12rpx 0; 
+            //     overflow: hidden;
+            //     text-overflow: ellipsis;
+            //     word-wrap: break-word;
+            //     white-space: normal !important;
+            //     -webkit-line-clamp: 1;
+            //     -webkit-box-orient: vertical;
+            // }
+            .classificationAllList_lecturer{
+                width: 100%; margin-top: 22rpx;
+                text:nth-child(1){ color: #F74D4D; font-family:PingFangSC-Semibold; font-weight:600; }
+                text:nth-child(2){ color: #999999; color: 24rpx; }
+                image{
+                    width: 56rpx; height: 34rpx; position: relative; top: 8rpx;
+                }
+            }
+        }
+    }
+
+}
+
+
+
+.noClassificationAllList{
+    width: 100%; text-align: center; box-sizing: border-box; padding-top: 300rpx;
+    color: #939393; margin-bottom: 40rpx;
+    image{
+        width: 202rpx; height: 172rpx;
+    }
+}
+</style>

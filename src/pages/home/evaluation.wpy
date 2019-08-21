@@ -1,0 +1,245 @@
+<template>
+    <view id="evaluation" style="padding-bottom: {{isStatr ? '380rpx' : '120rpx'}};">
+
+        <view class="details_evaluation" @tap="blur">
+            <view class="details_evaluationAll">
+                <view>
+                    <h2>综合评价</h2>
+                    <text>（{{getevaluate.length}}条）</text>
+                </view>
+                <view>
+                    <image wx:for="{{ComEvaluate}}" wx:key="{{index}}" src="/images/home/xin3.png" mode="aspectFill" lazy-load />
+                </view>
+            </view>
+            <block wx:for="{{getevaluate}}" wx:key="{{index}}">
+                <view class="details_evaluation_List">
+                    <view class="evaluation_portrait"><image src="{{item.LogoUrl}}" mode="aspectFill" lazy-load/></view>
+                    <view class="evaluation_cont">
+                        <view class="evaluation_cont_title">
+                            <text>{{item.UserName}}</text>
+                            <view>
+                                <image wx:for="{{item.Score}}" wx:key="{{index}}" src="/images/home/xin1.png" mode="aspectFill" lazy-load />
+                                <image wx:for="{{5 - item.Score}}" wx:key="{{index}}" src="/images/home/xin2.png" mode="aspectFill" lazy-load />
+                            </view>
+                        </view>
+                        <view class="evaluation_content">
+                            {{item.Content}}
+                        </view>
+                    </view>
+                </view>
+            </block>
+            <view wx:if="{{PageIndex >1}}" class="evaluationLoading">
+                <van-loading wx:if="{{isGet}}" type="spinner" size="20px" color="#999999" />
+                <text wx:else> ~没有更多了！</text>
+            </view>
+        </view>
+
+
+        <view class="sendEvaluation {{isStatr ? 'isStatr' : ''}}">
+            <view class="searchdiv">
+                <view class="search">
+                    <input type='text' bindinput="inputValue" value="{{value}}" bindfocus="getfocus" placeholder="说说你的看法" confirm-type="搜索" placeholder-style="color:#999999"/>
+                </view>
+                <text @tap="send">发送</text>
+            </view>
+            <view class="star">
+                <image wx:for="{{5}}" wx:key="{{index}}" @tap="starChange" data-index="{{index}}" src="/images/home/{{starIndex <= index ? 'xin5' : 'xin4'}}.png" mode="aspectFill" lazy-load />
+            </view>
+            <view class="sendEvaluation_tip">打颗星鼓励一下</view>
+        </view>
+
+    </view>
+</template>
+
+<script>
+import wepy from 'wepy'
+import { connect } from 'wepy-redux'
+import 'wepy-async-function'
+
+@connect({
+    
+})
+    
+export default class Evaluation extends wepy.page {
+    
+    config = {
+        navigationBarTitleText: '评价和提问',
+        "usingComponents": {
+            "van-loading": "../../components/vant/loading/index",
+        }
+    }
+    
+    components = {
+    
+    }
+    
+    data = {
+        starIndex:0, isStatr: false, CategoryId:'',
+        getevaluate:[], value:'', targetId:'',
+        PageIndex:1, isGet: false
+    }
+    
+    computed = {
+    
+    }
+    
+    methods = {
+        starChange(e){
+            this.starIndex = e.currentTarget.dataset.index+1
+            this.$apply()
+        },
+        getfocus(e){
+            // console.log(e)
+            this.isStatr = true
+            this.$apply()
+        },
+        blur(){
+            this.isStatr = false
+            this.$apply()
+        },
+        inputValue(e){
+            this.value = e.detail.value
+        },
+        send(){
+            this.isStatr = false
+            if(this.value != ''){
+                let list = {
+                    CollegeId: this.CategoryId, Content: this.value, Score: this.starIndex, TargetId: this.targetId
+                }
+                wepy.$Api.addvaluate(list).then(res=>{
+                    // console.log(res.data)
+                    if(res.data.IsSuccess){
+                        this.value = ''
+                        this.starIndex = 0
+                        wx.showToast({
+                            title: '评论成功',
+                            icon: 'success',
+                            duration: 2000
+                        })
+                        this.getList()
+                        this.$apply()
+                    }else{
+                        wx.showToast({
+                            title: res.data.Message,
+                            icon: 'none',
+                            duration: 2000
+                        })
+                    }
+                })
+                this.$apply()
+            }else{
+                wx.showToast({
+                    title: '请输入内容',
+                    icon: 'none',
+                    duration: 2000
+                })
+            }
+        },
+    }
+    
+    onLoad(e) {
+        // console.log(parseFloat(e.ComEvaluate))
+        this.CategoryId = e.CategoryId
+        this.ComEvaluate = parseFloat(e.ComEvaluate)
+        this.getList()
+    }
+
+    getList(){
+        wepy.$Api.getevaluate({CollegeId: this.CategoryId, PageSize: 10, PageIndex: this.PageIndex}).then(res=>{
+            // console.log(res.data)
+            if(res.data.IsSuccess){
+                this.PageIndex == 1 ? this.getevaluate = res.data.Data : this.getevaluate = this.getevaluate.concat(res.data.Data)
+                this.isGet = res.data.Data.length == 0 ? false : true
+                this.$apply()
+            }
+        })
+    }
+
+    onReachBottom(){
+        if(this.isGet){
+            this.PageIndex ++
+            this.getList()
+        }
+    }
+
+
+    onShareAppMessage(res) {
+        if (res.from === 'button') {
+            // 来自页面内转发按钮
+            console.log(res.target)
+        }
+        return {
+            title: '箴创学院',
+            path: '/pages/home/index'
+        }
+    }
+}
+</script>
+
+<style lang='less'>
+#evaluation{
+    width: 100%; min-height: 100%; box-sizing: border-box;
+}
+
+
+
+.details_evaluation{
+    width: 100%; box-sizing: border-box; padding: 40rpx 30rpx; 
+    .details_evaluationAll{
+        width: 100%; height: 40rpx; display: flex; justify-content: space-between; align-items: center;
+        h2{ color: #333333; font-size: 36rpx;font-family:PingFangSC-Semibold; font-weight:600; }
+        image{width: 30rpx; height: 30rpx; margin-left: 10rpx;}
+    }
+    .details_evaluation_List{
+        width: 100%; display: flex; justify-content: space-between; padding-top: 30rpx;
+        .evaluation_portrait{
+            width: 70rpx; height: 70rpx;
+            image{width: 100%; height: 100%; border-radius: 50%;}
+        }
+        .evaluation_cont{
+            width: 594rpx; padding-bottom: 30rpx; border-bottom: 1px solid #EEEEEE;
+            .evaluation_cont_title{
+                width: 100%; height: 52rpx; display: flex; justify-content: space-between; align-items: center; color: #939393;
+                image{width: 20rpx; height: 20rpx; margin-left: 10rpx;}
+            }
+            .evaluation_content{
+                width: 100%;
+            }
+        }
+    }
+}
+
+
+.sendEvaluation{
+    width: 100%; height: 380rpx; position: fixed; bottom: -238rpx; left: 0; background-color: white;
+    box-sizing: border-box; padding: 40rpx 30rpx;
+    .searchdiv{
+        width: 100%; height: 70rpx; display: flex; justify-content: space-between; align-items: center;
+        .search{
+            width: 590rpx; height: 100%; border-radius: 35rpx; background-color: #F5F5F5;
+            display: flex; align-items: center; padding-left: 22rpx; box-sizing: border-box;
+            input{width: 100%;}
+        }
+        text{font-size: 32rpx;}
+    }
+    .star{
+        width: 100%; display: flex; justify-content: center; margin-top: 80rpx;
+        image{width: 60rpx; height: 60rpx; margin-right: 40rpx;}
+    }
+    .sendEvaluation_tip{
+        color: #999999; margin-top: 24rpx; text-align: center;
+    }
+}
+.isStatr{
+    bottom: 0!important;
+}
+
+
+.evaluationLoading{
+    width: 100%; height: 50rpx; text-align: center; padding-top: 10rpx;
+    font-size: 24rpx; color: #999999;
+}
+
+
+
+</style>
