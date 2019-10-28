@@ -1,0 +1,341 @@
+<template>
+    <view id="Integral">
+        <view class="nav">
+            <view>当前积分</view>
+            <h5>{{Point}}</h5>
+        </view>
+        <view class="details_tab">
+            <block wx:for="{{tabList}}" wx:key="{{index}}">
+                <view class="tabList" @tap="changeTab" data-index="{{index}}">
+                    <text>{{item}}</text><view class="{{tabIndex == index ? 'tabActive' : ''}}"></view>
+                </view>
+            </block>
+        </view>
+
+        <view wx:if="{{tabIndex==0}}" class="record">
+            <view class="recordLikst" wx:for="{{pointinfoList}}" wx:key="{{index}}">
+                <view class="recordLikstCont">{{item.CreateTime}} {{item.OperDes}}</view>
+                <view class="num">{{item.OperPoint>0?'+'+item.OperPoint:item.OperPoint}}积分</view>
+            </view>
+        </view>
+
+        <view wx:if="{{tabIndex==1}}" class="exchange">
+            <block wx:for="{{pointexchangelist}}" wx:key="{{index}}">
+                <view class="exchangeList" @tap="changeCoupon" data-item="{{item}}">
+                    <image src="https://zcxy.oss-cn-beijing.aliyuncs.com/xcx/coupons.png" />
+                    <view class="couponsContent">
+                        <view class="couponsNum">{{item.Price}}</view>
+                        <view class="couponsContent_">
+                            <view>
+                                <h5>{{item.CouponTitle}}</h5>
+                                <view class="CouponDes">{{item.CouponDes}}</view>
+                            </view>
+                            <view class="exchanges">兑换</view>
+                            <!-- <text>{{item.StartTime}}-{{item.EndTime}}</text> -->
+                        </view>
+                    </view>
+                </view>
+            </block>
+        </view>
+
+        <view wx:if="{{isOks}}" class="isBindPhone" @tap="close">
+            <view class="isBindPhone_">
+                <view class="isOk">确定使用{{conpons.Price}}积分兑换<text>\n{{conpons.CouponTitle}}吗</text></view>
+                <view class="bind" @tap.stop="upMethod">确定</view>
+            </view>
+        </view>
+        <view wx:if="{{isSuccess}}" class="isBindPhone">
+            <view class="isBindPhone_">
+                <view class="h4">兑换成功</view>
+                <image src="/images/home/successs.png" mode="aspectFill" lazy-load/>
+                <view>兑换成功，你可以在<text @tap="couponClick" class="myCoupon">我的优惠券</text>里面找到</view>
+                <view class="bind" @tap="couponClick">确定</view>
+            </view>
+        </view>
+
+    </view>
+</template>
+
+<script>
+import wepy from 'wepy'
+import { connect } from 'wepy-redux'
+import 'wepy-async-function'
+
+@connect({
+    
+})
+    
+export default class Integral extends wepy.page {
+    
+    config = {
+        navigationBarTitleText: '积分'
+    }
+    
+    components = {
+    
+    }
+    
+    data = {
+        tabList:['积分记录', '积分兑换'],
+        tabIndex:0,
+        Point:0,
+        pointinfoList:[],
+        PageIndex: 1,
+        isGet: true,
+        pointexchangelist:[],
+        conpons:'',
+        isOks: false,
+        isSuccess: false,
+    }
+    
+    computed = {
+    
+    }
+    
+    methods = {
+        changeTab(e){
+            this.tabIndex = parseInt(e.currentTarget.dataset.index)
+            this.$apply()
+        },
+        goLogin(){
+
+        },
+        couponClick(){
+            wx.navigateTo({url:'/pages/my/myCoupons'})
+        },
+        changeCoupon(e){
+            this.conpons = e.currentTarget.dataset.item
+            this.isOks = true
+            this.$apply()
+        },
+        close(){
+            this.isOks=false
+        },
+        upMethod(){ 
+            this.isOks = false
+            if(this.Point>=this.conpons.SalePoint){
+                wx.showLoading({
+                        title: '加载中',
+                })
+                
+                let list = {
+                    GoodsId: this.conpons.Id,
+                    PayType:5,
+                    GoodsType:5,
+                }
+                wepy.$Api.createorder(list).then(res=>{ 
+                    // console.log(res.data)
+                    wx.hideLoading()
+                    if(res.data.IsSuccess){
+                        this.isSuccess = true
+                        this.Point -= this.conpons.SalePoint
+                        this.$apply()
+                    }else{
+                        wx.showToast({
+                            title: res.data.Message,
+                            icon: 'none',
+                            duration: 2000
+                        })
+                    }
+                    this.$apply()
+                })
+            }else{
+                wx.showToast({
+                    title: '积分不足',
+                    icon: 'none',
+                    duration: 2000
+                })
+            }
+        }
+    }
+
+    pointinfoMethods(){
+        let list = {
+            PageSize: 10, PageIndex: this.PageIndex
+        }
+        wepy.$Api.pointinfo(list).then(res=>{
+            // console.log(res.data)
+            if(res.data.IsSuccess){
+                this.PageIndex == 1 ? this.pointinfoList = res.data.Data : this.pointinfoList = this.pointinfoList.concat(res.data.Data)
+                this.isGet = res.data.Data.length == 0 ? false : true
+                this.$apply()
+            }else{
+                wx.showToast({
+                    title: res.data.Message,
+                    icon: 'none',
+                    duration: 2000
+                })
+            }
+            this.$apply()
+        })
+    }
+    pointexchangelistMethods(){
+        wepy.$Api.pointexchangelist().then(res=>{
+            // console.log(res.data)
+            if(res.data.IsSuccess){
+                this.pointexchangelist = res.data.Data
+                this.$apply()
+            }else{
+                wx.showToast({
+                    title: res.data.Message,
+                    icon: 'none',
+                    duration: 2000
+                })
+            }
+            this.$apply()
+        })
+    }
+    
+    onLoad(e) {
+        this.Point = e.Point
+        this.pointexchangelistMethods()
+    }
+
+    onShow(){
+        this.pointinfoMethods()
+    }
+
+    onReachBottom(){
+        if(this.isGet && this.tabIndex == 0){
+            this.PageIndex ++
+            this.pointinfoMethods()
+        }
+    }
+
+    onShareAppMessage(res) {
+        if (res.from === 'button') {
+            // 来自页面内转发按钮
+            // console.log(res.target)
+        }
+        return {
+            title: '箴创学院',
+            path: '/pages/integral/integral',
+            success(res){
+                wepy.$Api.share({TargetType:3, TargetId:'', Type:0}).then(res=>{ 
+                    // console.log(res.data)
+                    if(res.data.IsSuccess){
+                        if(res.data.Dictionary.Point.Result){
+                            wx.showToast({
+                                title: '+'+res.data.Dictionary.Point.Point+'积分',
+                                icon: '/images/home/jifen.png',
+                                duration: 2000
+                            })
+                        }
+                        this.$apply()
+                    }else{
+                        
+                    }
+                })
+            }
+        }
+    }
+}
+</script>
+
+<style lang='less'>
+#Integral{
+    width: 100; height: 100%;
+}
+
+
+.nav{
+    width: 100%; height: 323rpx; background:linear-gradient(270deg,rgba(255,94,146,1) 0%,rgba(255,135,52,1) 100%);
+    text-align: center; color: white; padding-top: 84rpx; font-size: 34rpx; box-sizing: border-box;
+    view{margin-bottom: 12rpx;}
+    h5{font-size: 48rpx; line-height: 66rpx;}
+}
+
+
+.details_tab{
+    width: 100%; height: 84rpx; display: flex; justify-content: space-around; align-items: center;
+    border-bottom: 10rpx solid #F5F3F2; box-sizing: border-box; padding: 0 50rpx; background-color: white;
+    .tabList{
+        min-width: 100rpx; line-height: 74rpx; position: relative;
+        view{
+            width: 100%; height: 2px; background-color: white;
+        }
+        .tabActive{
+            background-color: #FC6619;
+        }
+    }
+}
+
+
+
+
+.record{
+    width: 100%; padding: 0 30rpx; box-sizing: border-box;
+    .recordLikst{
+        width: 100%; height: 104rpx; border-bottom: 1px solid #EEEEEE;
+        display: flex; justify-content: space-between; align-items: center;
+        color: #333333;
+        .recordLikstCont{
+            width: 77%; height: 100%; line-height: 104rpx;
+            color: #515356; font-weight: 600;
+            display: -webkit-box;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            word-wrap: break-word;
+            white-space: normal !important;
+            -webkit-line-clamp: 1;
+            -webkit-box-orient: vertical;
+        }
+        .num{
+            color: #515356; font-weight: 600;
+        }
+    }
+}
+
+
+.exchange{
+    width: 100%; background-color: #F5F3F2; padding: 10rpx 30rpx; box-sizing: border-box;
+    .exchangeList{
+        width: 100%; height: 200rpx; position: relative; display: flex; margin-bottom: 20rpx;
+        image{
+            width: 100%; height: 100%; position: absolute; left: 0; top: 0;
+        }
+        .couponsContent{
+            width: 100%; height: 100%; position: absolute; left: 0; top: 0;
+            display: flex; position: relative;
+            .couponsNum{
+                width: 208rpx; height: 100%; font-size: 60rpx; color: #FFFFFF;
+                text-align: center; line-height: 200rpx;
+            }
+            .couponsContent_{
+                width: 482rpx; height: 100%; font-size: 24rpx; color: #999999;
+                box-sizing: border-box; padding: 0 58rpx; line-height: 25rpx; display: flex; align-items: center;
+                h5{font-size: 28rpx; color: #333333;}
+                .CouponDes{width: 100%; height: 25rpx; margin-top: 15rpx;}
+            }
+            .exchanges{
+                position: absolute; right: 50rpx; top: 80rpx; color: #FC6619; font-size: 30rpx;
+            }
+        }
+    }
+}
+
+
+
+
+.isBindPhone{
+    width: 100%; height: 100%; background:rgba(0,0,0,0.31); box-sizing: border-box;
+    position: fixed; top: 0; left: 0; z-index: 10003; 
+    display: flex; align-items: center; justify-content: center;
+    .isBindPhone_{
+        width: 624rpx; height: 600rpx; background-color: #FFFFFF; border-radius: 20rpx; color: #939393;
+        text-align: center; box-sizing: border-box; padding-top: 58rpx; position: relative;
+        .isOk{
+            color: #333333; font-size: 40rpx; margin-top: 160rpx; font-weight:600; padding: 0 30rpx;
+        }
+        .h4{font-size: 40rpx; color: #333333; font-family:PingFangSC; font-weight:600; margin-bottom: 10rpx;}
+        image{width: 120rpx; height: 84rpx; margin: 0 auto; margin-bottom: 40rpx; margin-top: 80rpx}
+        .myCoupon{font-size: 24rpx; color: #FC6619;}
+        .bind{
+            width:462rpx; height:100rpx; border-radius:50rpx; line-height: 100rpx; color: white;
+            font-size: 36rpx; position: absolute; bottom: 60rpx; left: 80rpx; font-weight: 600;
+            background:linear-gradient(270deg,rgba(255,94,146,1) 0%,rgba(255,135,52,1) 100%);
+
+        }
+    }
+}
+</style>

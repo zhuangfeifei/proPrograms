@@ -1,0 +1,77 @@
+<template>
+    <view id="manual">
+        <import src="../../wxParse/wxParse.wxml"/>
+        <view class="v_html">
+            <template is="wxParse" data="{{wxParseData:article.nodes}}"/>
+            <!-- <image src="{{html}}" mode="aspectFill" lazy-load/> -->
+        </view>
+
+    </view>
+</template>
+
+<script>
+import wepy from 'wepy'
+import { connect } from 'wepy-redux'
+import 'wepy-async-function'
+
+var WxParse = require('../../wxParse/wxParse.js');
+
+@connect({
+    
+})
+    
+export default class Manual extends wepy.page {
+    
+    config = {
+        navigationBarTitleText: '使用帮助'
+    }
+    
+    components = {
+    
+    }
+    
+    data = {
+        html:''
+    }
+    
+    computed = {
+    
+    }
+    
+    methods = {
+    
+    }
+    
+    onLoad() {
+        wepy.$Api.usermanual().then(res=>{
+            // console.log(res.data)
+            if(res.data.IsSuccess){
+                this.html = res.data.Data
+                WxParse.wxParse('article', 'html', this.html, this, 0);
+                this.$apply()
+            }else{
+                wx.showToast({
+                    title: res.data.Message,
+                    icon: 'none',
+                    duration: 2000
+                })
+            }
+            this.$apply()
+        })
+    }
+}
+</script>
+
+<style lang='less'>
+#manual{
+    width: 100%;
+}
+
+
+.v_html{
+    width: 100%;
+    image{width: 100%;}
+}
+
+
+</style>

@@ -1,0 +1,74 @@
+<template>
+    <view id="network">
+
+        <view class="textareas">
+            <image src="https://zcxy.oss-cn-beijing.aliyuncs.com/xcx/undraw_Taken_if77.png"/>
+            <view>网络不见了，立即检查网络</view>
+        </view>
+
+        <view class="login_btn" @tap="set">刷新</view>
+
+    </view>
+</template>
+
+<script>
+import wepy from 'wepy'
+import { connect } from 'wepy-redux'
+import 'wepy-async-function'
+
+@connect({
+    
+})
+    
+export default class Network extends wepy.page {
+    
+    config = {
+        // navigationBarTitleText: '网络'
+    }
+    
+    components = {
+    
+    }
+    
+    data = {
+        isfocus: false, value:''
+    }
+    
+    computed = {
+    
+    }
+    
+    methods = {
+        set(){
+            wx.reLaunch({url:'/pages/home/index'})
+        }
+    }
+    
+    onLoad() {
+    
+    }
+}
+</script>
+
+<style lang='less'>
+#network{
+    width: 100%;
+    .textareas{
+        width: 100%; box-sizing: border-box; text-align: center; padding-top: 228rpx;
+        image{
+            width: 282rpx; height: 244rpx;
+        }
+        view{
+            width: 100%; font-size: 28rpx; color: #333333; margin-top: 26rpx;font-family:PingFangSC-Medium; font-weight:500;
+        }
+    }
+}
+
+
+
+.login_btn{
+    width: 690rpx; height: 94rpx; background:linear-gradient(270deg,rgba(255,94,146,1) 0%,rgba(255,135,52,1) 100%);
+    text-align: center; line-height: 94rpx; border-radius: 47rpx; color: #FFFFFF; font-size: 36rpx; margin: auto;
+    margin-top: 172rpx;
+}
+</style>

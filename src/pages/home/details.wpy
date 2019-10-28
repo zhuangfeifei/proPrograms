@@ -5,9 +5,9 @@
             <view class="details_Top">
                 <view class="detailsVideo">
                     <video class="image-all" id="myVideo" wx:if="{{collegedetail}}" custom-cache="{{false}}" 
-                        src="{{videoIndexUrl}}" controls enable-play-gesture auto-pause-if-open-native 
-                        auto-pause-if-navigate show-mute-btn show-center-play-btn show-progress 
-                        bindplay="playVideo" >
+                        src="{{videoIndexUrl}}" controls enable-play-gesture auto-pause-if-open-native title="{{videoTitle}}"
+                        auto-pause-if-navigate show-mute-btn show-center-play-btn show-progress initial-time="{{times}}" autoplay="{{autoplay}}"
+                        bindplay="playVideo" bindended="endPlay" bindtimeupdate="timeUpdate" bindpause="bindpause">
                         
                     </video>
                 </view>
@@ -19,6 +19,9 @@
                     <block wx:for="{{tabList}}" wx:key="{{index}}">
                         <view class="tabList" @tap="changeTab" data-index="{{index}}">
                             <text>{{item}}</text><view class="{{tabIndex == index ? 'tabActive' : ''}}"></view>
+                            <form class="form" bindsubmit="formSubmit" report-submit="{{true}}">
+                                <button formType="submit">Submit</button>
+                            </form>
                         </view>
                     </block>
                 </view>
@@ -54,17 +57,32 @@
 
             <!-- 课程目录 -->
             <scroll-view wx:if="{{tabIndex == 1}}" scroll-y style="height: {{(screenHeight + px(134))+'px'}};">
-            <view class="directory">
-                <block wx:for="{{collegedetail.CollegeClass}}" wx:key="{{index}}">
-                    <view class="directoryList {{directoryListIndex === index ? 'directoryListActive' : ''}}" @tap="changeDirectory" data-item="{{item}}" data-index="{{index}}">
-                        <h5>{{index > 8 ? index+1 : '0'+(index+1)}}</h5>
-                        <view class="directoryList_name">
-                            <view class="directoryList_name_">{{item.ClassName}}</view>
-                            <view wx:if="{{directoryListIndex === index}}" class="directoryList_name_zz">正在看</view>
+                <view class="directory">
+                    <block wx:for="{{collegedetail.CollegeClass}}" wx:key="{{index}}">
+                        <!-- <view class="directoryList {{directoryListIndex === index ? 'directoryListActive' : ''}}" @tap="changeDirectory" data-item="{{item}}" data-index="{{index}}">
+                            <h5>{{index > 8 ? index+1 : '0'+(index+1)}}</h5>
+                            <view class="directoryList_name">
+                                <view class="directoryList_name_">{{item.ClassName}}</view>
+                                <view wx:if="{{directoryListIndex === index}}" class="directoryList_name_zz">正在看</view>
+                            </view>
+                        </view> -->
+                        <view class="directoryCont {{directoryListIndex === index ? 'directoryListActive' : ''}}" @tap="changeDirectory" data-item="{{item}}" data-index="{{index}}">
+                            <view class="directoryContLeft">
+                                <view class="solid1"></view>
+                                <h5>{{index > 8 ? index+1 : '0'+(index+1)}}</h5>
+                                <view class="solid2"></view>
+                            </view>
+                            <view class="directoryList_name">
+                                <view class="directoryList_name_">{{item.ClassName}}</view>
+                                <view wx:if="{{directoryListIndex === index}}" class="directoryList_name_zz">{{item.IsFree ? '免费' : '正在看'}}</view>
+                                <image wx:if="{{item.ClassDetail}}" src="/images/home/xias.png" mode="aspectFill" lazy-load />
+                                <view wx:if="{{item.ClassDetail}}" class="conclusion">本节知识点：
+                                    <view>{{item.ClassDetail}}</view>
+                                </view>
+                            </view>
                         </view>
-                    </view>
-                </block>
-            </view>
+                    </block>
+                </view>
             </scroll-view>
 
             <!-- 评价 -->
@@ -92,6 +110,13 @@
                             <view class="evaluation_content">
                                 {{item.Content}}
                             </view>
+                            <view wx:for="{{item.ReplyList}}" wx:for-index="indexs" wx:for-item="items" wx:key="{{indexs}}" class="evaluation_content official_content">
+                                <view>
+                                    <image src="https://zcxy.oss-cn-beijing.aliyuncs.com/xcx/tou.png" />
+                                    <image src="/images/home/official.png" />
+                                </view>
+                                {{items.Content}}
+                            </view>
                         </view>
                     </view>
                 </block>
@@ -114,17 +139,42 @@
                         这将消耗掉{{collegedetail.SalePrice/100}}枚创币，余额{{Balance/100}}创币，
                         <text>\n购买的课程可在我的课程里找到</text>
                     </view>
-                    <view class="buy_btn" @tap="payMethod">立即购买</view>
+                    <view class="buy_btn" @tap="payMethod">
+                        立即购买
+                    </view>
                 </view>
             </view>
 
 
             <view wx:if="{{collegedetail.SalePrice >0 && (OrderStatus == 102 || OrderStatus == 1)}}" class="buy">
-                <view class="buy_btn" @tap="buyMethod">{{isIos ? '立即咨询' : '立即购买'}}</view>
+                <view class="buy_btn" @tap="buyMethod">{{isIos ? '请至箴创学院官网咨询' : '立即购买'}}
+                    <form class="form" bindsubmit="formSubmit" report-submit="{{true}}">
+                        <button formType="submit">Submit</button>
+                    </form>
+                </view>
             </view>
             <view wx:elif="{{tabIndex == 2}}" class="buy">
                 <view class="buy_btn" @tap="evaluationMethod">评价和提问</view>
             </view>
+
+
+            <view wx:if="{{isBindPhone}}" class="isBindPhone">
+                <view class="isBindPhone_">
+                    <image src="https://zcxy.oss-cn-beijing.aliyuncs.com/xcx/undraw_mail_2_tqip.png" mode="aspectFill" lazy-load/>
+                    <view class="h4">立即绑定手机号</view>
+                    <text>绑定手机号即送课程《P4P爆款打造》</text>
+                    <view class="bind" @tap="goLogin">去绑定</view>
+                </view>
+            </view>
+
+
+            <view id="Popup" wx:if="{{isSign}}">
+                <view>课程</view>
+                <image src="/images/home/jifen.png" />
+                <view>+{{Point}}积分</view>
+            </view>
+
+            
 
         </view>
 </template>
@@ -159,7 +209,7 @@ export default class Details extends wepy.page {
     }
     
     data = {
-        screenHeight:'', topNum:10, collegedetail:'', tabIndex:0, 
+        screenHeight:'', topNum:10, collegedetail:'', tabIndex:0, isBindPhone: false,
         tabList:['课程简介','课程目录','学员评价'],
         directoryListIndex: '',
         videoIndexUrl:'',
@@ -171,7 +221,11 @@ export default class Details extends wepy.page {
         getevaluate:[],
         isIos: false,
         qrCode:'https://zcxy.oss-cn-beijing.aliyuncs.com/xcx/%E8%96%9B%E5%BE%AE%E4%BF%A1.jpg',
-        PageIndex:1, isGet: false
+        PageIndex:1, isGet: false,
+        times:0, videoTitle:'',
+        setIntervals:'', videoTimes: 0,
+        Point:0,isSign: false,
+        autoplay: false
     }
     
     computed = {
@@ -179,6 +233,20 @@ export default class Details extends wepy.page {
     }
     
     methods = {
+        formSubmit (e){
+            // console.log('form发生了submit事件，携带数据为：', e.detail)
+            if(e.detail.formId != 'the formId is a mock one'){
+                wepy.$Api.formid(e.detail.formId).then(res=>{
+                    // console.log(res.data)
+                    if(res.data.IsSuccess){
+                        
+                    }
+                })
+            }
+        },
+        goLogin(){
+            wx.navigateTo({url:'/pages/login/login'})
+        },
         scrolltoupper(){
 
         },
@@ -186,59 +254,126 @@ export default class Details extends wepy.page {
             this.topNum = 0
             this.$apply()
             this.tabIndex = parseInt(e.currentTarget.dataset.index)
+            if(e.currentTarget.dataset.index == 2){
+                this.getevaluateMethod()
+            }
         },
         changeDirectory(e){
             // console.log(e)
             // console.log(this.userinfo)
-            if(this.OrderStatus == 102){
-                wx.showToast({
-                    title: '您还没有购买此商品',
-                    icon: 'none',
-                    duration: 2000
-                })
-            }else{
-                this.isVideo = false
-                this.isVideoing = false
-                this.isVideoLoading = true
-                this.directoryListIndex = e.currentTarget.dataset.index
-                this.videoIndexUrl = e.currentTarget.dataset.item.VideoUrl
-                setTimeout(()=>{
-                    this.isVideoLoading = false
-                    this.$apply()
-                },2000)
-                wx.setKeepScreenOn({
-                    keepScreenOn: true
-                })
-            }
-            this.$apply()
-            
-        },
-        playVideo(){
-            this.isVideoing = this.collegedetail.CollegeType == '2' ? true : false
-            this.$apply()
-        },
-        buyMethod(){
-            if(this.isIos)
-            {
-                wx.makePhoneCall({
-                    phoneNumber:'135-6435-0056'
-                });
-            }
-            else{
-                this.isModel = !this.isModel
-                if(this.isModel){
-                    wepy.$Api.getcache().then(res=>{
+            if(this.userinfo){
+                if(!this.collegedetail.CollegeClass[e.currentTarget.dataset.index].IsFree){
+                    // 判断是否购买
+                    let Goods = [{
+                        GoodsId: this.collegedetail.Id, GoodsType: this.collegedetail.GoodsType
+                    }]
+                    wepy.$Api.status({Goods}).then(res=>{ 
                         // console.log(res.data)
                         if(res.data.IsSuccess){
-                            this.Balance = res.data.Data.Balance
+                            this.OrderStatus = res.data.Data.Goods[0].OrderStatus
+                            if(res.data.Data.Goods[0].OrderStatus == 102){
+                                wx.showToast({
+                                    title: this.isIos?'您还没有解锁此课程，请点击下方去官网咨询':'您还没有购买此课程',
+                                    icon: 'none',
+                                    duration: 2000
+                                })
+                            }else{
+                                this.getwatch(e)
+                            }
                             this.$apply()
+                        }else{
+                            
                         }
                     })
+                }else{ 
+                    this.getwatch(e)
                 }
+            }else{
+                wx.showModal({
+                    // title: '请登录',
+                    content: '您还没有登录！',
+                    confirmText: '去登录',
+                    success (res) {
+                        if (res.confirm) {
+                            wx.navigateTo({url:'/pages/authorization/authorization'})
+                        } else if (res.cancel) {
+                        // console.log('用户点击取消')
+                        }
+                    }
+                })
+            }
+            // this.$apply()
+            
+        },
+        playVideo(){ // 开始播放
+            this.isVideoing = this.collegedetail.CollegeType == '2' ? true : false
+            if(this.userinfo){
+                this.setIntervals = setInterval(()=>{
+                    this.recordwatch(0)
+                },5000)
             }
             this.$apply()
         },
-        payMethod(){
+        endPlay(){ // 播放结束
+            this.recordwatch(1)
+            clearInterval(this.setIntervals)
+            this.$apply()
+        },
+        timeUpdate(event){ // 记录播放监听
+            // console.log(event.detail)
+            this.videoTimes = event.detail
+        },
+        bindpause(){ // 暂停播放
+            clearInterval(this.setIntervals)
+            this.$apply()
+        },
+        buyMethod(){ // 判断是否是IOS
+            if(this.isIos)
+            {
+                // wx.showToast({
+                //     title: '请至箴创学院官网咨询',
+                //     icon: 'none',
+                //     duration: 2000
+                // })
+                wx.navigateTo({url:'/pages/home/web?webUrl=https://www.proseer.cn'})
+                // wx.makePhoneCall({
+                //     phoneNumber:'135-6435-0056'
+                // });
+            }
+            else if(this.userinfo){
+                // console.log(this.collegedetail)
+                wepy.$store.dispatch({
+                    type: 'collegedetail',
+                    payload: this.collegedetail
+                });
+                wx.navigateTo({url:'/pages/home/pay'})
+                // this.isModel = !this.isModel
+                // if(this.isModel){
+                //     wepy.$Api.getcache().then(res=>{
+                //         // console.log(res.data)
+                //         if(res.data.IsSuccess){
+                //             this.Balance = res.data.Data.Balance
+                //             this.$apply()
+                //         }
+                //     })
+                // }
+            }else{
+                wx.showModal({
+                    // title: '请登录',
+                    content: '您还没有登录！',
+                    confirmText: '去登录',
+                    success (res) {
+                        if (res.confirm) {
+                            wx.navigateTo({url:'/pages/authorization/authorization'})
+                        } else if (res.cancel) {
+                        // console.log('用户点击取消')
+                        }
+                    }
+                })
+            }
+            this.$apply()
+        },
+        payMethod(){ // 支付
             wepy.$Api.getcache().then(res=>{
                 // console.log(res.data)
                 if(res.data.IsSuccess){
@@ -250,7 +385,7 @@ export default class Details extends wepy.page {
                             GoodsType:1,
                             openId: this.userinfo.OpenId
                         }
-                        wepy.$Api.createorder(list).then(res=>{ 
+                        wepy.$Api.createorder(list).then(res=>{ // 创建订单
                             // prepay_id, nonce_str, paySign, timeStamp
                             // console.log(res.data)
                             if(res.data.Code === '2' || res.data.Code === '12'){
@@ -307,13 +442,54 @@ export default class Details extends wepy.page {
         }
     }
 
-    getevaluateMethod(){
+    getevaluateMethod(){ // 获取评价
         wepy.$Api.getevaluate({CollegeId: this.collegedetail.Id, PageSize: 10, PageIndex: this.PageIndex}).then(res=>{
             // console.log(res.data)
             if(res.data.IsSuccess){
                 this.PageIndex == 1 ? this.getevaluate = res.data.Data : this.getevaluate = this.getevaluate.concat(res.data.Data)
                 this.isGet = res.data.Data.length == 0 ? false : true
                 this.$apply()
+            }
+        })
+    }
+
+    recordwatch(status){  // 记录播放进度
+        // console.log(status)
+        wepy.$Api.recordwatch({TargetType: 7, ParentId: this.collegedetail.Id, TargetId: this.collegedetail.CollegeClass[this.directoryListIndex].ClassId, 
+            Record: parseInt(this.videoTimes.currentTime), AllSec: parseInt(this.videoTimes.duration), Status: status}).then(res=>{
+            // console.log(res.data)
+            if(res.data.IsSuccess){
+
+            }
+        })
+    }
+
+    getwatch(e){ // 获取课节播放进度
+        wepy.$Api.getwatch({TargetType: 7, TargetId: this.collegedetail.CollegeClass[e.currentTarget.dataset.index].ClassId}).then(res=>{
+            // console.log(res.data)
+            if(res.data.IsSuccess){
+                this.times = res.data.Data.Record
+                this.isVideo = false
+                this.isVideoing = false
+                this.isVideoLoading = true
+                this.directoryListIndex = e.currentTarget.dataset.index
+                this.videoIndexUrl = e.currentTarget.dataset.item.VideoUrl
+                this.videoTitle = e.currentTarget.dataset.item.ClassName
+                this.autoplay = true
+                setTimeout(()=>{
+                    this.isVideoLoading = false
+                    this.$apply()
+                },2000)
+                wx.setKeepScreenOn({
+                    keepScreenOn: true
+                })
+                this.$apply()
+            }else{
+                wx.showToast({
+                    title: res.data.Message,
+                    icon: 'none',
+                    duration: 2000
+                })
             }
         })
     }
@@ -327,7 +503,7 @@ export default class Details extends wepy.page {
 
 
     onLoad(){
-        wx.getSystemInfo({
+        wx.getSystemInfo({ // 获取设备信息
             success:(res)=> {
                 // console.log(res)
                 this.isIos = res.model.indexOf("iPhone")==-1 ? false : true;
@@ -340,68 +516,99 @@ export default class Details extends wepy.page {
 
 
     onShow() {
+        setTimeout(()=>{
+            // this.isSign = false
+            this.$apply()
+        },2000)
         // console.log(e)
         wx.showLoading({
             title: '加载中',
         })
 
-        wepy.$Api.collegedetail(this.CollegeId).then(res=>{
-            // console.log(res.data)
-            wx.hideLoading()
-            this.collegedetail = res.data.Data
-            let html = res.data.Data.CollegeContent
-            WxParse.wxParse('article', 'html', html, this, 0);
-            this.getevaluateMethod()
-            // console.log(this.userinfo)
-            // 判断有没有绑定手机号
-            if(this.userinfo.Mobile == ''){
-                wx.showModal({
-                    title: '温馨提示',
-                    content: '请绑定手机号',
-                    confirmText: '去绑定',
-                    success (res) {
-                        if (res.confirm) {
-                            wx.navigateTo({url:'/pages/login/login'})
-                        } else if (res.cancel) {
-                        // console.log('用户点击取消')
-                        }
+        if(this.userinfo){
+            // 获取课程信息
+            wepy.$Api.collegedetail(this.CollegeId).then(res=>{
+                // console.log(res.data)
+                wx.hideLoading()
+                this.collegedetail = res.data.Data
+                let html = res.data.Data.CollegeContent
+                WxParse.wxParse('article', 'html', html, this, 0);
+
+                let e = {
+                    currentTarget:{
+                        dataset:{index:0,item:this.collegedetail.CollegeClass[0]}
                     }
-                })
-                if(this.collegedetail.SalePrice == 0){
-                    // 免费
-                    this.OrderStatus = 0 
                 }
-            }else{
-                // 判断是否购买
-                if(this.collegedetail.SalePrice > 0){
+                
+                // console.log(this.userinfo)
+
+                // 判断有没有绑定手机号
+                if(this.userinfo.Mobile == ''){
+                    this.isBindPhone = true
+                    // if(this.collegedetail.SalePrice == 0){
+                    //     // 免费
+                    //     this.OrderStatus = 0 
+                    // }
+                    this.$apply()
+                }else{
+                    // 判断是否购买
                     let Goods = [{
                         GoodsId: this.collegedetail.Id, GoodsType: this.collegedetail.GoodsType
                     }]
-                    wepy.$Api.status({Goods}).then(res=>{
+                    wepy.$Api.status({Goods}).then(res=>{ 
                         // console.log(res.data)
                         if(res.data.IsSuccess){
                             this.OrderStatus = res.data.Data.Goods[0].OrderStatus
                             if(res.data.Data.Goods[0].OrderStatus == 102){
                                 wx.showToast({
-                                    title: '您还没有购买此商品',
+                                    title: this.isIos?'您还没有解锁此课程，请点击下方去官网咨询':'您还没有购买此课程',
                                     icon: 'none',
                                     duration: 2000
                                 })
+                                if(this.collegedetail.CollegeClass[0].IsFree) {
+                                    this.getwatch(e)
+                                }
+                            }else{
+                                this.getwatch(e)
                             }
                             this.$apply()
                         }else{
-
+                            
                         }
                     })
-                }else{
-                    // 免费
-                    this.OrderStatus = 0 
                 }
-            }
-            this.$apply()
-        })
+                this.$apply()
+            })
+        }else{
+            // 获取课程信息
+            wepy.$Api.collegedetailnu(this.CollegeId).then(res=>{
+                // console.log(res.data)
+                wx.hideLoading()
+                this.collegedetail = res.data.Data
+                let html = res.data.Data.CollegeContent
+                WxParse.wxParse('article', 'html', html, this, 0);
+                
+                // console.log(this.userinfo)
 
+                
+                this.$apply()
+            })
+        }
         
+        
+        
+        
+        
+    }
+
+    onUnload(){ // 关闭定时器
+        clearInterval(this.setIntervals)
+        this.$apply()
+    }
+
+    onHide(){ // 关闭定时器
+        clearInterval(this.setIntervals)
+        this.$apply()
     }
 
 
@@ -410,9 +617,26 @@ export default class Details extends wepy.page {
             // 来自页面内转发按钮
             // console.log(res.target)
         }
+        
+        wepy.$Api.share({TargetType:3, TargetId:this.CollegeId, Type:0}).then(res=>{ 
+            // console.log(res.data)
+            if(res.data.IsSuccess){
+                if(res.data.Dictionary.Point.Result){
+                    this.Point= res.data.Dictionary.Point.Point
+                    this.isSign = true
+                    this.$apply()
+                }
+            }else{
+                
+            }
+        })
         return {
             title: '箴创学院',
-            path: '/pages/home/index?CollegeId='+this.CollegeId
+            path: '/pages/home/index?CollegeId='+this.CollegeId,
+            imageUrl: '',
+            success(res){
+                
+            }
         }
     }
 
@@ -452,13 +676,16 @@ export default class Details extends wepy.page {
     width: 100%; height: 100rpx; display: flex; justify-content: space-around; align-items: center;
     border-bottom: 10rpx solid #F5F3F2; box-sizing: border-box; padding: 0 50rpx; background-color: white;
     .tabList{
-        min-width: 100rpx; line-height: 86rpx;
+        min-width: 100rpx; line-height: 86rpx; position: relative;
         view{
             width: 100%; height: 2px; background-color: white;
         }
         .tabActive{
             background-color: #FC6619;
         }
+    }
+    .form{
+        width: 100%; height: 100%; position: absolute; top: 0; left: 0; opacity: 0;
     }
 }
 
@@ -522,15 +749,45 @@ export default class Details extends wepy.page {
 // 课程目录列表
 .directory{
     width: 100%;
-    .directoryList{
-        width: 100%; height: 104rpx; display: flex; justify-content: space-between; align-items: center;
-        box-sizing: border-box; padding-left: 30rpx;
-        h5{color: #D7D7D7; }
+    // .directoryList{
+    //     width: 100%; height: 104rpx; display: flex; justify-content: space-between; align-items: center;
+    //     box-sizing: border-box; padding-left: 30rpx;
+    //     h5{color: #D7D7D7; }
+    //     .directoryList_name{
+    //         width: 665rpx; height: 100rpx; border-bottom: 1px solid #EEEEEE; box-sizing: border-box;
+    //         display: flex; justify-content: space-between; align-items: center; padding-right: 30rpx;
+    //         .directoryList_name_{
+    //             min-width: 450rpx; height: 30rpx; line-height: 30rpx;
+    //             display: -webkit-box;
+    //             overflow: hidden;
+    //             text-overflow: ellipsis;
+    //             word-wrap: break-word;
+    //             white-space: normal !important;
+    //             -webkit-line-clamp: 1;
+    //             -webkit-box-orient: vertical;
+    //         }
+    //         .directoryList_name_zz{ min-width: 110rpx; color: #939393; text-align: right; }
+    //     }
+    // }
+    
+    .directoryCont{
+        width: 100%; display: flex; justify-content: space-between;
+        box-sizing: border-box; padding-left: 30rpx; padding-top: 30rpx;
+        .directoryContLeft{
+            width: 40rpx; text-align: center; position: relative; overflow: hidden;
+            h5{color: #D7D7D7; line-height: 30rpx; position: relative; top: -3rpx; }
+            .solid1{
+                width: 2rpx; height: 20rpx; background-color: #D7D7D7; position: absolute; top: -20rpx; left: 15rpx;
+            }
+            .solid2{
+                width: 2rpx; height: calc(100% - 70rpx); background-color: #D7D7D7; position: relative; top: -10rpx; margin: 0 auto; margin-top: 22rpx;
+            }
+        }
         .directoryList_name{
-            width: 665rpx; height: 100rpx; border-bottom: 1px solid #EEEEEE; box-sizing: border-box;
-            display: flex; justify-content: space-between; align-items: center; padding-right: 30rpx;
+            width: 660rpx; border-bottom: 1px solid #EEEEEE; box-sizing: border-box;
+            display: flex; justify-content: space-between; flex-wrap: wrap; padding-right: 30rpx;
             .directoryList_name_{
-                min-width: 450rpx; height: 30rpx; line-height: 30rpx;
+                min-width: 450rpx; max-width: 582rpx; height: 30rpx; line-height: 30rpx;
                 display: -webkit-box;
                 overflow: hidden;
                 text-overflow: ellipsis;
@@ -540,10 +797,14 @@ export default class Details extends wepy.page {
                 -webkit-box-orient: vertical;
             }
             .directoryList_name_zz{ min-width: 110rpx; color: #939393; text-align: right; }
+            .conclusion{
+                width: 100%; padding-bottom: 10px; padding-top: 5px; color: #939393; font-size: 24rpx;
+            }
+            image{width: 26rpx; height: 14rpx; margin-top: 10rpx;}
         }
     }
     .directoryListActive{
-        h5{color: #FC6619; font-family:PingFangSC-Semibold; font-weight:600; }
+        h5{color: #FC6619!important; font-family:PingFangSC-Semibold; font-weight:600; }
         .directoryList_name_{font-family:PingFangSC-Semibold; font-weight:600;}
     }
 }
@@ -562,7 +823,7 @@ export default class Details extends wepy.page {
     .details_evaluation_List{
         width: 100%; display: flex; justify-content: space-between; padding-top: 30rpx;
         .evaluation_portrait{
-            width: 70rpx; height: 70rpx;
+            width: 70rpx; height: 70rpx; overflow: hidden;
             image{width: 100%; height: 100%; border-radius: 50%;}
         }
         .evaluation_cont{
@@ -573,6 +834,18 @@ export default class Details extends wepy.page {
             }
             .evaluation_content{
                 width: 100%;
+            }
+            .official_content{
+                color: #939393;
+                view{
+                    display: flex; align-items: center; margin: 10rpx 0;
+                    image:nth-child(1){
+                        width: 60rpx; height: 60rpx; border-radius: 50%;
+                    }
+                    image:nth-child(2){
+                        width: 54rpx; height: 30rpx; margin-left: 10rpx;
+                    }
+                }
             }
         }
     }
@@ -620,9 +893,43 @@ export default class Details extends wepy.page {
     .buy_btn{
         width: 690rpx; height: 94rpx; background:linear-gradient(270deg,rgba(255,94,146,1) 0%,rgba(255,135,52,1) 100%);
         text-align: center; line-height: 94rpx; border-radius: 47rpx; color: #FFFFFF; font-size: 36rpx; margin: 20rpx auto;
+        .form{
+            width: 100%; height: 100%; position: absolute; top: 0; left: 0; opacity: 0;
+        }
     }
 }
 
+
+
+
+.isBindPhone{
+    width: 100%; height: 100%; background:rgba(0,0,0,0.31); box-sizing: border-box;
+    position: fixed; top: 0; left: 0; z-index: 1000; 
+    display: flex; align-items: center; justify-content: center;
+    .isBindPhone_{
+        width: 580rpx; height: 580rpx; background-color: #FFFFFF; border-radius: 20rpx;
+        text-align: center; box-sizing: border-box; padding-top: 58rpx;
+        image{width: 204rpx; height: 190rpx; margin-bottom: 30rpx;}
+        .h4{font-size: 28rpx; color: #333333; font-family:PingFangSC; font-weight:400; margin-bottom: 10rpx;}
+        text{font-size: 24rpx; color: #939393;}
+        .bind{
+            width:432rpx; height:64rpx; border-radius:47rpx; line-height: 64rpx; color: white;
+            font-size: 28rpx; margin: 0 auto; margin-top: 68rpx;
+            background:linear-gradient(270deg,rgba(255,94,146,1) 0%,rgba(255,135,52,1) 100%);
+
+        }
+    }
+}
+
+
+
+
+#Popup{
+    width: 200rpx; height: 200rpx; background: rgba(0,0,0,0.58); border-radius:20rpx; font-size: 28rpx; box-sizing: border-box;
+    text-align: center; position: fixed; top: calc(50vh - 100rpx); left: calc(50% - 100rpx); z-index: 30; color: white; padding-top: 24rpx;
+    image{width: 42rpx; height: 42rpx; margin: 10rpx auto;}
+    view{width: 100%; height: 35rpx;}
+}
 
 
 </style>

@@ -32,11 +32,11 @@ const request = (url, method, token = '', data = {}, headers = 'application/x-ww
                 }
               })
           }
-          if(request.data.Code == '5002'){
-              wepy.navigateTo({
-                url: '/pages/authorization/authorization'
-              })
-          }
+          // if(request.data.Code == '5002'){
+          //     wepy.navigateTo({
+          //       url: '/pages/authorization/authorization'
+          //     })
+          // }
           resolve(request)
         }else{
           

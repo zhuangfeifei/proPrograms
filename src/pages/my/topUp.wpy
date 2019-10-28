@@ -16,6 +16,16 @@
             </view>
         </view>
 
+        <view class="my_list" @tap="router" data-url="/pages/my/topUpRecord">
+            <view>
+                <!-- <image src="/images/home/course.png" mode="aspectFill" lazy-load/> -->
+                <text>创币使用记录</text>
+            </view>
+            <view>
+                <image src="/images/home/Chevron.png" mode="aspectFill" lazy-load/>
+            </view>
+        </view>
+
         <view class="topUp_amount">
             <h2>选择充值数目</h2>
             <view class="amountList">
@@ -38,7 +48,12 @@
             <text>\n4.小程序内仅限安卓用户充值，ios用户请联系箴创运营小二购买课程。</text>
         </view>
 
-        <view class="sub_btn" @tap="upMethod">立即充值</view>
+        <view class="sub_btn" @tap="upMethod">
+            立即充值
+            <form class="form" bindsubmit="formSubmit" report-submit="{{true}}">
+                <button formType="submit">Submit</button>
+            </form>
+        </view>
 
     </view>
 </template>
@@ -63,7 +78,7 @@ export default class TopUp extends wepy.page {
     }
     
     data = {
-        amountList:[8,68,188,288,388,588], amountIndex: 0,
+        amountList:[8,68,118,288,388,588], amountIndex: 0,
         userinfo:''
     }
     
@@ -72,6 +87,18 @@ export default class TopUp extends wepy.page {
     }
     
     methods = {
+        formSubmit (e){
+            // console.log('form发生了submit事件，携带数据为：', e.detail)
+            wepy.$Api.formid(e.detail.formId).then(res=>{
+                // console.log(res.data)
+                if(res.data.IsSuccess){
+                    
+                }
+            })
+        },
+        router(e){
+            wx.navigateTo({url: e.currentTarget.dataset.url})
+        },
         changeAmount(e){
             this.amountIndex = e.currentTarget.dataset.index
             this.$apply()
@@ -131,8 +158,8 @@ export default class TopUp extends wepy.page {
                     type: 'userinfos',
                     payload: res.data.Data
                 });
+                this.$apply()
             }
-            this.$apply()
         })
     }
 
@@ -176,6 +203,20 @@ export default class TopUp extends wepy.page {
 }
 
 
+.my_list{
+    width: 100%; height: 106rpx; display: flex; justify-content: space-between; align-items: center; background-color: white;
+    box-sizing: border-box; padding:0 30rpx; border-bottom: 1px solid #EEEEEE; margin-top: 10rpx;
+    view:nth-child(1){
+        display: flex; align-items: center;
+        image{width: 48rpx; height: 48rpx; margin: 0 38rpx;}
+    }
+    view:nth-child(2){
+        display: flex; align-items: center; color: #999999;
+        image{width: 16rpx; height: 26rpx; margin-left: 22rpx;}
+    }
+}
+
+
 .topUp_amount{
     width: 100%; padding: 30rpx; box-sizing: border-box;
     background-color: white; margin-top: 10rpx;
@@ -207,6 +248,9 @@ export default class TopUp extends wepy.page {
     width: 690rpx; height: 94rpx; background:linear-gradient(270deg,rgba(255,94,146,1) 0%,rgba(255,135,52,1) 100%);
     text-align: center; line-height: 94rpx; border-radius: 47rpx; color: #FFFFFF; font-size: 36rpx;
     position: absolute; bottom: 40rpx; left: 30rpx;z-index: 100;
+    .form{
+        width: 100%; height: 100%; position: absolute; top: 0; left: 0; opacity: 0;
+    }
 }
 
 

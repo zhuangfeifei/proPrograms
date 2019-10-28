@@ -1,23 +1,51 @@
 <template>
     <view id="my">
 
-        <view class="my_nav">
-            <view class="portrait">
-                <image @tap="routers" src="{{userinfo.LogoUrl}}" mode="aspectFill" lazy-load/>
-                <view class="my_name">
-                    <h3 @tap="routers">{{userinfo.UserName}}</h3>
-                    <image @tap="routers" src="/images/home/xiugai.png" mode="aspectFill" lazy-load/>
-                    <view @tap="routers" wx:if="{{userinfo.Mobile}}" class="my_phone">{{userinfo.Mobile}}</view>
-                    <view wx:else @tap="goLogin" class="goLogin">绑定手机号 送10创币</view>
+        <view wx:if="{{userinfo}}" class="my_nav">
+            <view class="my_nav_">
+                <view class="portrait">
+                    <image @tap="routers" src="{{userinfo.LogoUrl}}" mode="aspectFill" lazy-load/>
+                    <view class="my_name">
+                        <h3 @tap="routers">{{userinfo.UserName}}</h3>
+                        <image @tap="routers" src="/images/home/xiugai.png" mode="aspectFill" lazy-load/>
+                        <view @tap="routers" wx:if="{{userinfo.Mobile}}" class="my_phone">{{userinfo.Mobile}}</view>
+                        <view wx:else @tap="goLogin" class="goLogin" data-url="/pages/login/login">绑定手机号 送10创币</view>
+                    </view>
+                </view>
+                <!-- <view wx:if="{{!isIos}}" class="my_balance" @tap="router" data-url="/pages/integral/sign"> -->
+                <view class="my_balance" @tap="router" data-url="/pages/integral/sign">
+                    <!-- <view>
+                        <image src="/images/home/cb.png" mode="aspectFill" lazy-load/>
+                        <text>{{"余额: "+userinfo.Balance/100}}\n<text class="recharge">去充值</text></text>
+                        <image class="more" src="/images/home/Chevron.png" mode="aspectFill" lazy-load/>
+                    </view> -->
+                    <h5>签到领好礼</h5>
                 </view>
             </view>
-            <view wx:if="{{!isIos}}" class="my_balance" @tap="topUp">
-                <view>
-                    <image src="/images/home/cb.png" mode="aspectFill" lazy-load/>
-                    <text>{{"余额: "+userinfo.Balance/100}}\n<text class="recharge">去充值</text></text>
-                    <image class="more" src="/images/home/Chevron.png" mode="aspectFill" lazy-load/>
+            <view wx:if="{{!isIos}}" class="tab">
+                <view class="integral" @tap="goLogin" data-url="{{'/pages/integral/integral?Point='+userinfo.Point}}">
+                    <image src="/images/home/jifen.png" mode="aspectFill" lazy-load/>
+                    <view>
+                        <text>积分</text>
+                        <view>{{userinfo.Point}}</view>
+                    </view>
                 </view>
-                <!-- <h5>去充值</h5> -->
+                <view class="chuangbi" @tap="goLogin" data-url="/pages/my/topUp">
+                    <view class="chuangbiSolid"></view>
+                    <image class="cb" src="/images/home/cb.png"/>
+                    <view>
+                        <text>创币</text>
+                        <view>{{userinfo.Balance/100}}</view>
+                    </view>
+                </view>
+            </view>
+        </view>
+        <view wx:else class="my_nav" @tap="goLogin" data-url="/pages/authorization/authorization">
+            <view class="portrait portraits">
+                <image src="https://zcxy.oss-cn-beijing.aliyuncs.com/xcx/user.png" mode="aspectFill" lazy-load/>
+                <view class="my_name">
+                    <view class="goLogins">登录</view>
+                </view>
             </view>
         </view>
 
@@ -32,10 +60,37 @@
                     <image src="/images/home/Chevron.png" mode="aspectFill" lazy-load/>
                 </view>
             </view> -->
-            <view class="my_list" @tap="myCourse">
+            <view class="my_list" @tap="router" data-url="{{'/pages/integral/integral?Point='+userinfo.Point}}">
                 <view>
-                    <image src="/images/home/course.png" mode="aspectFill" lazy-load/>
+                    <image class="integral" src="/images/home/integral.png" mode="aspectFill" lazy-load/>
+                    <text>我的积分</text>
+                </view>
+                <view>
+                    <image src="/images/home/Chevron.png" mode="aspectFill" lazy-load/>
+                </view>
+            </view>
+            <view class="my_list" @tap="router" data-url="/pages/my/myCourse">
+                <view>
+                    <image class="course" src="/images/home/course.png" mode="aspectFill" lazy-load/>
                     <text>我的课程</text>
+                </view>
+                <view>
+                    <image src="/images/home/Chevron.png" mode="aspectFill" lazy-load/>
+                </view>
+            </view>
+            <view class="my_list" @tap="router" data-url="/pages/my/myOrder">
+                <view>
+                    <image class="order" src="/images/home/dingdan.png" mode="aspectFill" lazy-load/>
+                    <text>我的订单</text>
+                </view>
+                <view>
+                    <image src="/images/home/Chevron.png" mode="aspectFill" lazy-load/>
+                </view>
+            </view>
+            <view class="my_list" @tap="router" data-url="/pages/my/watchRecord">
+                <view>
+                    <image class="bo" src="/images/home/bo.png" mode="aspectFill" lazy-load/>
+                    <text>播放记录</text>
                 </view>
                 <view>
                     <image src="/images/home/Chevron.png" mode="aspectFill" lazy-load/>
@@ -43,13 +98,66 @@
             </view>
             <view class="my_list" @tap="businessCard">
                 <view>
-                    <image src="/images/home/card.png" mode="aspectFill" lazy-load/>
+                    <image class="card" src="/images/home/card.png" mode="aspectFill" lazy-load/>
                     <text>我的名片</text>
                 </view>
                 <view>
                     <image src="/images/home/Chevron.png" mode="aspectFill" lazy-load/>
                 </view>
             </view>
+            <view class="my_list" @tap="router" data-url="/pages/my/myCoupons">
+                <view>
+                    <image class="coupon" src="/images/home/coupon.png" mode="aspectFill" lazy-load/>
+                    <text>我的优惠券</text>
+                </view>
+                <view>
+                    <image src="/images/home/Chevron.png" mode="aspectFill" lazy-load/>
+                </view>
+            </view>
+            <view class="my_list" @tap="router" data-url="/pages/my/manual">
+                <view>
+                    <image class="help" src="/images/home/help.png" mode="aspectFill" lazy-load/>
+                    <text>使用帮助</text>
+                </view>
+                <view>
+                    <image src="/images/home/Chevron.png" mode="aspectFill" lazy-load/>
+                </view>
+            </view>
+            <view class="my_list">
+                <view>
+                    <image class="help" src="/images/home/test.png" mode="aspectFill" lazy-load/>
+                    <text>邀请好友</text>
+                </view>
+                <view>
+                    <image src="/images/home/Chevron.png" mode="aspectFill" lazy-load/>
+                </view>
+                <button open-type="share"></button>
+            </view>
+            <view class="my_list feedback" @tap="router" data-url="/pages/my/feedback">
+                <view>
+                    <image class="feedbacks" src="/images/home/feedback.png" mode="aspectFill" lazy-load/>
+                    <text>意见反馈</text>
+                </view>
+                <view>
+                    <image src="/images/home/Chevron.png" mode="aspectFill" lazy-load/>
+                </view>
+            </view>
+        </view>
+
+        <view wx:if="{{isLogin}}" @tap="preventTouchMove" class="haibao">
+            <view class="skip" @tap.stop="Haibao">跳过</view>
+            <image src="{{'https://zcxy.oss-cn-beijing.aliyuncs.com/xcx/guidance/step'+index+'.png?v1'}}" lazy-load/>
+        </view>
+
+        <view id="Popup" wx:if="{{isSign}}">
+            <view>积分</view>
+            <image src="/images/home/jifen.png" />
+            <view>+{{Point}}积分</view>
+        </view>
+        <view id="Popup" wx:if="{{isCB}}">
+            <view>创币</view>
+            <image src="/images/home/cb.png" />
+            <view>+10创币</view>
         </view>
 
     </view>
@@ -75,7 +183,8 @@ export default class My extends wepy.page {
     }
     
     data = {
-        userinfo:'',asd:'', isIos:false
+        userinfo:'',asd:'', isIos:false, index:3, isLogin: false,
+        isSign: false,isCB:false, Point: 10
     }
     
     computed = {
@@ -83,17 +192,28 @@ export default class My extends wepy.page {
     }
     
     methods = {
+        preventTouchMove(){
+            if(this.index<6){
+                this.index = this.index+1
+                this.$apply()
+            }else{
+                this.isLogin = false
+                this.setxcxtask()
+            }
+        },
+        Haibao(){
+            this.isLogin = false
+            this.setxcxtask()
+            this.$apply()
+        },
         routers(){
             wx.navigateTo({url:'/pages/my/setup'})
         },
-        goLogin(){
-            wx.navigateTo({url:'/pages/login/login'})
+        router(e){
+            wx.navigateTo({url: e.currentTarget.dataset.url})
         },
-        topUp(){
-            wx.navigateTo({url:'/pages/my/topUp'})
-        },
-        myCourse(){
-            wx.navigateTo({url:'/pages/my/myCourse'})
+        goLogin(e){
+            wx.navigateTo({url: e.currentTarget.dataset.url})
         },
         businessCard(){
             if(this.userinfo.Mobile == ''){
@@ -114,8 +234,57 @@ export default class My extends wepy.page {
             }
         },
     }
+
+
+
+
+    setxcxtask(){
+        wepy.$Api.setxcxtask({Tags:[0]}).then(res=>{
+            // console.log(res.data)
+            if(res.data.IsSuccess){
+                this.onShow()
+                this.$apply()
+            }else{
+                wx.showToast({
+                    title: res.data.Message,
+                    icon: 'none',
+                    duration: 2000
+                })
+            }
+            this.$apply()
+        })
+    }
+
+
+
+
+    onLoad(){
+        wx.getStorage({
+            key:'userinfo',
+            success:res=>{
+                if(res.data.IsShowXcxGuid){
+                    this.isLogin = true
+                    this.$apply()
+                }
+            },
+            fail:res=>{
+                // console.log(res)
+                this.isLogin = true
+                this.$apply()
+            }
+        })
+    }
+
+
     
     onShow() {
+
+        setTimeout(()=>{
+            this.isSign = false
+            this.$apply()
+        },2000)
+
+
         wx.getSystemInfo({
             success:(res)=> {
                 // console.log(res)
@@ -128,11 +297,12 @@ export default class My extends wepy.page {
             if(res.data.IsSuccess){
                 res.data.Data.UserName = decodeURI(res.data.Data.UserName)
                 this.userinfo = res.data.Data
-                this.$apply()
+                wx.setStorage({key:'userinfo', data: res.data.Data})
                 wepy.$store.dispatch({
                     type: 'userinfos',
                     payload: res.data.Data
                 });
+                this.$apply()
             }else{
                 wx.showToast({
                     title: res.data.Message,
@@ -147,13 +317,29 @@ export default class My extends wepy.page {
     onShareAppMessage(res) {
         if (res.from === 'button') {
             // 来自页面内转发按钮
-            // console.log(res.target)
+            console.log(res)
         }
+        wepy.$Api.share({TargetType:3, TargetId:'', Type:0}).then(res=>{ 
+            // console.log(res.data)
+            if(res.data.IsSuccess){
+                if(res.data.Dictionary.Point.Result){
+                    this.Point = res.data.Dictionary.Point.Point
+                    this.isSign = true
+                    this.$apply()
+                }
+            }else{
+                
+            }
+        })
         return {
             title: '箴创学院',
-            path: '/pages/home/my'
+            path: '/pages/my/my?InviteUserId='+this.userinfo.UserId,
+            success(res){
+                console.log(res)
+            }
         }
     }
+
 }
 </script>
 
@@ -164,8 +350,12 @@ export default class My extends wepy.page {
 }
 
 .my_nav{
-    width: 100%; height: 180rpx; background-color: white; box-sizing: border-box; padding-left: 30rpx; 
-    display: flex; justify-content: space-between; align-items: center; padding-right: 26rpx;
+    width: 100%; background-color: white; box-sizing: border-box; padding-left: 30rpx; 
+    padding-right: 26rpx;
+    .my_nav_{
+        width: 100%; height: 180rpx; display: flex; justify-content: space-between; align-items: center;
+    }
+    .portraits{padding: 20rpx 0;}
     .portrait{
         height: 120rpx;display: flex; align-items: center;
         image{ width: 120rpx; height: 120rpx; border-radius: 50%; }
@@ -175,6 +365,7 @@ export default class My extends wepy.page {
             image{ width: 28rpx; height: 30rpx; border-radius: 0; margin-left: 10rpx; position: relative; top: 5rpx; }
             .my_phone{margin-top: 12rpx; color: #999999;}
             .goLogin{margin-top: 12rpx; color: #FC6619;}
+            .goLogins{margin-top: 12rpx; color: #999999;}
         }
     }
     .my_balance{
@@ -183,31 +374,84 @@ export default class My extends wepy.page {
             display: flex; align-items: center;
             image{width: 42rpx; height: 48rpx; margin-right: 22rpx;}
             text{font-size: 24rpx; color: #333333; font-family:PingFangSC-Semibold; }
-            .recharge{margin-top: 8rpx;font-size: 28rpx; color: #FC6619;font-family:PingFangSC-Semibold;}
+            .recharge{margin-top: 8rpx; font-size: 28rpx; color: #FC6619; font-family:PingFangSC-Semibold;}
             .more{width: 16rpx; height: 26rpx; margin-left: 22rpx; margin-right: 0;}
         }
-        h5{color: #FC6619;}
+        h5{color: #FC6619; font-size: 34rpx;}
+    }
+    
+    .tab{
+        width: 100%; display: flex; align-items: center; padding-bottom: 26rpx; font-size: 34rpx;
+        image{width: 42rpx; height: 42rpx; margin-right: 32rpx;}
+        .cb{width: 40rpx; height: 44rpx;}
+        .integral{
+            width: 50%; display: flex; align-items: center; padding-left: 30rpx; box-sizing: border-box;
+            view{margin-top: 10rpx; }
+        }
+        .chuangbi{
+            width: 50%; display: flex; align-items: center; box-sizing: border-box; 
+            .chuangbiSolid{width: 2rpx; height: 60rpx; background-color: #EDEDED; margin-right: 62rpx; margin-top: 0!important;}
+            view{margin-top: 10rpx; }
+        }
     }
 }
 
 
 .my_function{
-    width: 100%; margin-top: 10rpx; background-color: white;
+    width: 100%; margin-top: 10rpx;
     .my_list{
-        width: 100%; height: 106rpx; display: flex; justify-content: space-between; align-items: center;
-        box-sizing: border-box; padding-left: 10rpx; padding-right: 30rpx; border-bottom: 1px solid #EEEEEE;
+        width: 100%; height: 106rpx; display: flex; justify-content: space-between; align-items: center; background-color: white;
+        box-sizing: border-box; padding-left: 10rpx; padding-right: 30rpx; border-bottom: 1px solid #EEEEEE; position: relative;
         view:nth-child(1){
             display: flex; align-items: center;
-            image{width: 104rpx; height: 104rpx; margin-right: 10rpx;}
+            image{width: 48rpx; height: 48rpx; margin: 0 38rpx;}
+            .course{width: 36rpx; height: 36rpx;}
+            .order{width: 40rpx; height: 36rpx;}
+            .bo{width: 34rpx; height: 34rpx;}
+            .card{width: 38rpx; height: 34rpx;}
+            .coupon{width: 36rpx; height: 30rpx;}
+            .help{width: 36rpx; height: 36rpx;}
+            .feedbacks{width: 36rpx; height: 26rpx;}
+            .integral{width: 36rpx; height: 36rpx;}
         }
         view:nth-child(2){
             display: flex; align-items: center; color: #999999;
             image{width: 16rpx; height: 26rpx; margin-left: 22rpx;}
         }
+        button{
+            width: 100%; height: 100%; position: absolute; top: 0; left: 0; opacity: 0;
+        }
     }
     .my_list:last-child{border: 0;}
+    .feedback{margin-top: 10rpx;}
 }
 
 
+
+.stepLogin{
+    width: 100%; height: 100%; position: fixed; top: 0; left: 0; z-index: 10001;
+    image{width: 100%; height: 100%;}
+}
+
+
+
+#Popup{
+    width: 200rpx; height: 200rpx; background: rgba(0,0,0,0.58); border-radius:20rpx; font-size: 28rpx; box-sizing: border-box;
+    text-align: center; position: fixed; top: calc(50vh - 100rpx); left: calc(50% - 100rpx); z-index: 10; color: white; padding-top: 24rpx;
+    image{width: 42rpx; height: 42rpx; margin: 12rpx auto;}
+    view{width: 100%; height: 35rpx; margin-bottom: 12rpx;}
+}
+
+
+
+
+.haibao{
+    width: 100%; height: 100%; background:rgba(0,0,0,0.31); box-sizing: border-box;
+    position: fixed; top: 0; left: 0; z-index: 10003; display: flex; justify-content: center; align-items: center;
+    image{width: 100%; height: 100%;}
+    .skip{
+        position: absolute; top: 3.5rem; right: 1rem; color: white; color: white;
+    }
+}
 
 </style>

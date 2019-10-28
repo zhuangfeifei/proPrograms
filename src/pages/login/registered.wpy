@@ -114,9 +114,6 @@ export default class Legistered extends wepy.page {
             width: 150rpx; height: 50rpx; line-height: 50rpx; text-align: center;
         }
         .codeEnd{ color:#CCCCCC; }
-        input{
-            
-        }
     }
     .registered_btn{
         width: 100%; height: 94rpx; background:linear-gradient(270deg,rgba(255,94,146,1) 0%,rgba(255,135,52,1) 100%);

@@ -1,7 +1,7 @@
 <template>
     <view>
         <view class="login_logo">
-            <image src="/images/home/zhen.png" mode="aspectFill" lazy-load />
+            <image src="https://zcxy.oss-cn-beijing.aliyuncs.com/xcx/zhen.png" mode="aspectFill" lazy-load />
         </view>
         <view class="page-redirect">
 
@@ -12,9 +12,14 @@
                 <view>微信登录</view>
 
             </button>
+            <button class='btn1' 
+                bindtap="go">
+                <view>取消</view>
+
+            </button>
         
         </view>
-        <view class="charge-detail">登陆即代表同意我们的 <text bindtap="seetext" class="text">用户协议</text></view>
+        <view class="charge-detail">登录即代表同意我们的 <text bindtap="seetext" class="text">用户协议</text></view>
 
     </view>
 </template>
@@ -54,6 +59,9 @@ export default class Authorization extends wepy.page {
                 url: '/pages/authorization/agreement'
             })
         },
+        go(){
+            wx.navigateBack()
+        },
         getUserInfos(){
             wx.showLoading({
                 title: '登录中...',
@@ -68,7 +76,7 @@ export default class Authorization extends wepy.page {
                             if (res.authSetting['scope.userInfo']) {
                                 wepy.getUserInfo({
                                     success: res => {
-                                        console.log('user',res)
+                                        // console.log('user',res)
                                         wx.getSystemInfo({
                                             success:(resType)=> {
                                                 // console.log(resType)
@@ -88,19 +96,46 @@ export default class Authorization extends wepy.page {
                                                 Api.wxregister(jsonData).then(res=>{
                                                     // console.log('asdas',res.data)
                                                     if(res.data.IsSuccess){
-                                                        // wepy.setStorage('userinfo', res.data.Data)
+                                                        wx.setStorage({key:'userinfo', data: res.data.Data})
                                                         wepy.$store.dispatch({
                                                             type: 'userinfos',
                                                             payload: res.data.Data
                                                         });
-                                                        wx.navigateBack()
-                                                    }else{
 
+                                                        wepy.$Api.setxcxtask({Tags:[0]}).then(res=>{
+                                                            // console.log(res.data)
+                                                            if(res.data.IsSuccess){
+                                                                
+                                                            }else{
+                                                                wx.showToast({
+                                                                    title: res.data.Message,
+                                                                    icon: 'none',
+                                                                    duration: 2000
+                                                                })
+                                                            }
+                                                            this.$apply()
+                                                        })
+                                                        if(res.data.Data.Mobile == ''){
+                                                            wx.navigateTo({url:`/pages/login/login`})
+                                                        }else if(res.data.Data.Tag == 0){
+                                                            wx.navigateTo({url:`/pages/home/label`})
+                                                        }else{
+                                                            wx.navigateBack()
+                                                        }
+                                                    }else{
+                                                        wx.showToast({
+                                                            title: res.data.Message,
+                                                            icon: 'none',
+                                                            duration: 2000
+                                                        })
                                                     }
                                                 })
                                             }
 
                                         })
+                                    },
+                                    fail:res=>{
+                                        wx.hideLoading()
                                     }
                                 })
                             } else {
@@ -134,17 +169,17 @@ export default class Authorization extends wepy.page {
 
 <style lang='less'>
 .login_logo{
-    width: 100%; height: 300rpx; text-align: center; position: absolute; top: 250rpx; left: 0;
+    width: 100%; height: 300rpx; text-align: center; margin-top: 250rpx;
     image{width: 292rpx; height: 96rpx;}
 }
 
 
  .page-redirect{
       width: 100%;
-      height: 1000rpx;
-      display: flex;
-      justify-content: center;
-      align-items: center;
+      height: 100%;
+    //   display: flex;
+    //   justify-content: center;
+    //   align-items: center;
     }
     .pop_btn{
       font-size: 32rpx;
@@ -165,7 +200,6 @@ export default class Authorization extends wepy.page {
       flex-direction: row;
       align-items: center;
       justify-content: center;
-      bottom:-200rpx;
     }
 
     .btnImg {
@@ -180,7 +214,7 @@ export default class Authorization extends wepy.page {
     }
     .charge-detail {
       text-align:center;
-      margin-top:-180rpx;
+      margin-top:180rpx;
       color:#707070;
       font-size:70%;
       font-weight: soild

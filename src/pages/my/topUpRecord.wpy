@@ -1,0 +1,172 @@
+<template>
+    <view id="topUpRecord">
+
+        <view class="record">
+            <!-- <h3>使用记录</h3> -->
+            <view class="recordList" wx:for="{{record}}" wx:key="{{index}}">
+                <h4>{{item.DateTime}}</h4>
+                <view wx:for="{{item.data}}" wx:for-index="indexs" wx:for-item="items" wx:key="{{indexs}}">· {{items.Title}}</view>
+            </view>
+        </view>
+
+        <view wx:if="{{PageIndex >1}}" class="videoLoading">
+            <van-loading wx:if="{{isGet}}" type="spinner" size="20px" color="#999999" />
+            <text wx:else> ~没有更多了！</text>
+        </view>
+
+    </view>
+</template>
+
+<script>
+import wepy from 'wepy'
+import { connect } from 'wepy-redux'
+import 'wepy-async-function'
+
+@connect({
+    
+})
+    
+export default class TopUpRecord extends wepy.page {
+    
+    config = {
+        navigationBarTitleText: '创币使用记录'
+    }
+    
+    components = {
+    
+    }
+    
+    data = {
+        userinfo:'', record:'',
+        isGet: false, PageIndex: 1
+    }
+    
+    computed = {
+    
+    }
+    
+    methods = {
+
+    }
+    
+    onShow() {
+        wepy.$Api.getcache().then(res=>{
+            // console.log(res.data)
+            if(res.data.IsSuccess){
+                this.userinfo = res.data.Data
+                wepy.$store.dispatch({
+                    type: 'userinfos',
+                    payload: res.data.Data
+                });
+            }
+            this.$apply()
+        })
+        
+        this.getList()
+    }
+
+    getList(){
+        wepy.$Api.orderMy({PageSize:30, PageIndex: this.PageIndex}).then(res=>{
+            // console.log(res.data)
+            if(res.data.IsSuccess){
+                let arr = res.data.Data
+                var map = {},
+                    dest = [];
+                for(var i = 0; i < arr.length; i++){
+                    var ai = arr[i];
+                    if(!map[ai.DateTime]){
+                        dest.push({
+                            DateTime: ai.DateTime,
+                            data: [ai]
+                        });
+                        map[ai.DateTime] = ai;
+                    }else{
+                        for(var j = 0; j < dest.length; j++){
+                            var dj = dest[j];
+                            if(dj.DateTime == ai.DateTime){
+                                dj.data.push(ai);
+                                break;
+                            }
+                        }
+                    }
+                }
+                
+                // console.log(dest);
+                this.record = this.PageIndex == 1 ? dest : this.record.concat(dest)
+                this.isGet = res.data.Data.length == 0 ? false : true
+                this.$apply()
+            }
+        })
+    }
+
+    onReachBottom(){
+        if(this.isGet){
+            this.PageIndex ++
+            this.getList()
+        }
+    }
+
+    onShareAppMessage(res) {
+        if (res.from === 'button') {
+            // 来自页面内转发按钮
+            console.log(res.target)
+        }
+        return {
+            title: '箴创学院',
+            path: '/pages/home/index'
+        }
+    }
+}
+</script>
+
+<style lang='less'>
+#topUpRecord{
+    width: 100%; min-height: 100%; box-sizing: border-box; padding-top: 10rpx; background-color: #FFFFFF;
+}
+
+
+.my_nav{
+    width: 100%; height: 180rpx; background-color: white; box-sizing: border-box; padding-left: 30rpx; 
+    display: flex; justify-content: space-between; align-items: center; padding-right: 26rpx;
+    .portrait{
+        height: 90rpx;display: flex; align-items: center;
+        image{ width: 80rpx; height: 90rpx; }
+        .my_name{
+            margin-left: 34rpx; color: #999999;
+            h3{font-size: 34rpx; color: #333333;font-family:PingFangSC-Medium; font-weight:600;}
+        }
+    }
+    .my_balance{
+        text-align: right; height: 90rpx;
+        view{
+            image{width: 42rpx; height: 48rpx; margin-right: 22rpx;}
+            text{font-size: 40rpx; color: #333333;font-family:PingFangSC-Semibold;font-weight:600;}
+        }
+    }
+}
+
+
+
+.record{
+    width: 100%; margin-top: 10rpx; background-color: white; box-sizing: border-box; padding: 30rpx;
+    h3{font-size: 36rpx; color: #333333; font-weight: 600;}
+    .recordList{
+        width: 100%; font-size: 28rpx; color: #939393; margin-top: 30rpx;
+        h4{font-size: 28rpx; color: #333333; font-weight: 600;}
+        view{
+            width: 100%; margin-top: 20rpx;
+        }
+    }
+}
+
+
+
+.videoLoading{
+    width: 100%; height: 50rpx; text-align: center; padding-top: 10rpx;
+    font-size: 24rpx; color: #999999;
+}
+
+
+
+
+</style>

@@ -81,7 +81,9 @@ import { connect } from 'wepy-redux'
 import 'wepy-async-function'
 
 @connect({
-    
+    userinfo(state) {
+        return state.counter.userinfo;
+    },
 })
     
 export default class BusinessCard extends wepy.page {
@@ -217,27 +219,42 @@ export default class BusinessCard extends wepy.page {
     }
     
     onShow() {
-        this.isXaingce = false
-        wepy.$Api.getUser().then(res=>{
-            // console.log(res.data)
-            if(res.data.IsSuccess){
-                this.user = res.data.Data
-                this.list.userinfoend = res.data.Data
-                this.list.IdName = res.data.Data.IdName
-                this.list.Sex = res.data.Data.Sex
-                this.list.Mobile = res.data.Data.Mobile
-                this.list.Email = res.data.Data.Email
-                this.list.CompanyName = res.data.Data.CompanyName
-                this.list.CompanyProduct = res.data.Data.CompanyProduct
-                this.list.CompanyPosition = res.data.Data.CompanyPosition
-                this.list.LiveCity = res.data.Data.LiveCity
-                let screenHeight = wx.getSystemInfoSync().windowHeight;
-                this.screenHeight = screenHeight
-                this.canvasMethod()
-                this.$apply()
+        if(this.userinfo){
+            this.isXaingce = false
+            wepy.$Api.getUser().then(res=>{
+                // console.log(res.data)
+                if(res.data.IsSuccess){
+                    this.user = res.data.Data
+                    this.list.userinfoend = res.data.Data
+                    this.list.IdName = res.data.Data.IdName
+                    this.list.Sex = res.data.Data.Sex
+                    this.list.Mobile = res.data.Data.Mobile
+                    this.list.Email = res.data.Data.Email
+                    this.list.CompanyName = res.data.Data.CompanyName
+                    this.list.CompanyProduct = res.data.Data.CompanyProduct
+                    this.list.CompanyPosition = res.data.Data.CompanyPosition
+                    this.list.LiveCity = res.data.Data.LiveCity
+                    let screenHeight = wx.getSystemInfoSync().windowHeight;
+                    this.screenHeight = screenHeight
+                    this.canvasMethod()
+                    this.$apply()
 
-            }
-        })
+                }
+            })
+        }else{
+            wx.showModal({
+                // title: '请登录',
+                content: '您还没有登录！',
+                confirmText: '去登录',
+                success (res) {
+                    if (res.confirm) {
+                        wx.navigateTo({url:'/pages/authorization/authorization'})
+                    } else if (res.cancel) {
+                    // console.log('用户点击取消')
+                    }
+                }
+            })
+        }
 
     }
 
@@ -264,8 +281,26 @@ export default class BusinessCard extends wepy.page {
                 }
             })
         });
+        let promise3 = new Promise( (resolve, reject)=> {
+            wx.getImageInfo({
+                src: 'https://zcxy.oss-cn-beijing.aliyuncs.com/xcx/xcxcode.jpg',
+                success: (res)=> {
+                    // console.log(res)
+                    resolve(res);
+                }
+            })
+        });
+        let promise4 = new Promise( (resolve, reject)=> {
+            wx.getImageInfo({
+                src: 'https://zcxy.oss-cn-beijing.aliyuncs.com/xcx/zhen.png',
+                success: (res)=> {
+                    // console.log(res)
+                    resolve(res);
+                }
+            })
+        });
         Promise.all([
-            promise1, promise2
+            promise1, promise2, promise3, promise4
         ]).then(res=>{
             // console.log(res)
             wx.hideLoading()
@@ -282,7 +317,7 @@ export default class BusinessCard extends wepy.page {
         ctx.fillStyle = '#ffffff';
         ctx.fillRect(0, 0, 345, 1000);
         ctx.drawImage(
-            '../../images/home/zhen.png', 97.5, 20, 150, 45
+            this.files[3].path, 97.5, 20, 150, 45
         );
         ctx.drawImage(
             this.files[1].path, 15, 80, 315, 185
@@ -307,7 +342,7 @@ export default class BusinessCard extends wepy.page {
         this.classificationList[5].checked ? ctx.fillText(this.list.LiveCity, 30, 250) : ''
 
         ctx.drawImage(
-            '../../images/home/xcxcode.jpg', 122.5, 280, 100, 100
+            this.files[2].path, 122.5, 280, 100, 100
         );
         ctx.setFillStyle('black');
         ctx.fillText('扫码加入箴创学院小程序 生成属于自己的跨境名片', 15, 410)

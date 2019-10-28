@@ -54,7 +54,7 @@
         </view>
 
         <view wx:if="{{collegeList.length==0}}" class="noClassificationAllList">
-            <image src="/images/home/undraw_reading_list_4boi.png" mode="aspectFill" lazy-load/>
+            <image src="https://zcxy.oss-cn-beijing.aliyuncs.com/xcx/undraw_reading_list_4boi.png" mode="aspectFill" lazy-load/>
             <text>\n没找到相关课程！</text>
         </view>
 
@@ -85,6 +85,19 @@
             <text wx:else> ~没有更多了！</text>
         </view>
 
+
+        <view wx:if="{{isLogin}}" @tap="preventTouchMove" class="haibao">
+            <view class="skip" @tap.stop="Haibao">跳过</view>
+            <image src="https://zcxy.oss-cn-beijing.aliyuncs.com/xcx/guidance/step2.png?v1" lazy-load/>
+        </view>
+
+
+        <view id="Popup" wx:if="{{isSign}}">
+            <view>分享</view>
+            <image src="/images/home/jifen.png" />
+            <view>+{{Point}}积分</view>
+        </view>
+
     </view>
 </template>
 
@@ -94,7 +107,12 @@ import { connect } from 'wepy-redux'
 import 'wepy-async-function'
 
 @connect({
-    
+    CategoryId(state) {
+        return state.counter.CategoryId;
+    },
+    CategoryIdIndex(state) {
+        return state.counter.CategoryIdIndex;
+    },
 })
     
 export default class Classification extends wepy.page {
@@ -118,8 +136,10 @@ export default class Classification extends wepy.page {
         PageIndex: 1,
         recommendList:[],
         isGet: false,
-        isVideoLoading: true,
-        isIos: false
+        isIos: false,
+        userinfo:'',
+        isLogin: false,
+        isSign: false, Point: 0
     }
     
     computed = {
@@ -127,6 +147,29 @@ export default class Classification extends wepy.page {
     }
     
     methods = {
+        preventTouchMove(){
+            this.isLogin = false
+            this.$apply()
+            wx.switchTab({url:'/pages/my/my'})
+        },
+        Haibao(){
+            this.isLogin = false
+            wepy.$Api.setxcxtask({Tags:[0]}).then(res=>{
+                // console.log(res.data)
+                if(res.data.IsSuccess){
+                    this.onShow()
+                    this.$apply()
+                }else{
+                    wx.showToast({
+                        title: res.data.Message,
+                        icon: 'none',
+                        duration: 2000
+                    })
+                }
+                this.$apply()
+            })
+            this.$apply()
+        },
         changeclassification(e){
             this.classificationIndex = e.currentTarget.dataset.index
             this.value = ''
@@ -149,6 +192,21 @@ export default class Classification extends wepy.page {
         },
         details(e){
             // console.log(e.currentTarget.dataset.item)
+            if(this.userinfo == ''){
+                wx.showModal({
+                    // title: '请登录',
+                    content: '请登录',
+                    confirmText: '去登录',
+                    success (res) {
+                        if (res.confirm) {
+                            wx.navigateTo({url:'/pages/authorization/authorization'})
+                        } else if (res.cancel) {
+                        // console.log('用户点击取消')
+                        }
+                    }
+                })
+                return
+            }
             wepy.$store.dispatch({
                 type: 'CollegeIds',
                 payload: e.currentTarget.dataset.item.CollegeId
@@ -156,8 +214,33 @@ export default class Classification extends wepy.page {
             wx.navigateTo({url:`/pages/home/details`})
         },
     }
+
+    onLoad(){
+        wx.getStorage({
+            key:'userinfo',
+            success:res=>{
+                if(res.data.IsShowXcxGuid){
+                    this.isLogin = true
+                    this.$apply()
+                }
+            },
+            fail:res=>{
+                // console.log(res)
+                this.isLogin = true
+                this.$apply()
+            }
+        })
+    }
     
-    onLoad(e) {
+    onShow() {
+        this.PageIndex = 1
+        this.$apply()
+
+        setTimeout(()=>{
+            this.isSign = false
+            this.$apply()
+        },2000)
+
         wx.getSystemInfo({
             success:(res)=> {
                 // console.log(res)
@@ -165,6 +248,14 @@ export default class Classification extends wepy.page {
             }
 
         })
+        wx.getStorage({
+            key:'userinfo',
+            success:res=>{
+                // console.log(res.data)
+                this.userinfo = res.data
+            }
+        })
+        
         wepy.$Api.college().then(res=>{
             // console.log(res.data)
             if(res.data.IsSuccess){
@@ -181,12 +272,12 @@ export default class Classification extends wepy.page {
                 list.unshift({CategoryId:0, CategoryName: '全部', SonCategory:[]});
                 this.classificationList = list
                 
-                this.classificationIndex = e.index
+                this.classificationIndex = this.CategoryIdIndex || 0
                 this.$apply()
             }
         })
         let lists = {
-            CategoryId: e.id, 
+            CategoryId: this.CategoryId, 
             CategoryId2: 0, 
             PageIndex: this.PageIndex, PageSize:10, SearchCollegeName: this.value
         }
@@ -202,10 +293,11 @@ export default class Classification extends wepy.page {
 
     getList(){
         let index = this.classificationIndex
+        // console.log(this.classificationList, index)
         let list = {
             CategoryId: this.classificationList[index].SonCategory ? this.classificationList[index].CategoryId : 0, 
             CategoryId2: !this.classificationList[index].SonCategory ? this.classificationList[index].CategoryId : 0, 
-            PageIndex: this.PageIndex, PageSize:10, SearchCollegeName: this.value
+            PageIndex: this.PageIndex, PageSize:12, SearchCollegeName: this.value
         }
         wepy.$Api.collegeList(list).then(res=>{
             // console.log(res.data)
@@ -241,10 +333,35 @@ export default class Classification extends wepy.page {
             // 来自页面内转发按钮
             // console.log(res.target)
         }
+        wepy.$Api.share({TargetType:3, TargetId:'', Type:0}).then(res=>{ 
+            // console.log(res.data)
+            if(res.data.IsSuccess){
+                if(res.data.Dictionary.Point.Result){
+                    this.Point = res.data.Dictionary.Point.Point
+                    this.isSign = true
+                    this.$apply()
+                }
+            }else{
+                
+            }
+        })
         return {
             title: '箴创学院',
-            path: '/pages/home/index'
+            path: '/pages/home/index',
+            success(res){
+            }
         }
+    }
+
+    onHide(){
+        wepy.$store.dispatch({
+            type: 'CategoryIds',
+            payload: ''
+        });
+        wepy.$store.dispatch({
+            type: 'CategoryIdsIndex',
+            payload: 0
+        });
     }
 }
 </script>
@@ -350,5 +467,32 @@ export default class Classification extends wepy.page {
     font-size: 24rpx; color: #999999;
 }
 
+
+
+.stepLogin{
+    width: 100%; height: 100%; position: fixed; top: 0; left: 0; z-index: 10001;
+    image{width: 100%; height: 100%;}
+}
+
+
+
+
+#Popup{
+    width: 200rpx; height: 200rpx; background: rgba(0,0,0,0.58); border-radius:20rpx; font-size: 28rpx; box-sizing: border-box;
+    text-align: center; position: fixed; top: calc(50vh - 100rpx); left: calc(50% - 100rpx); z-index: 10; color: white; padding-top: 24rpx;
+    image{width: 42rpx; height: 42rpx; margin: 12rpx auto;}
+    view{width: 100%; height: 35rpx; margin-bottom: 12rpx;}
+}
+
+
+
+.haibao{
+    width: 100%; height: 100%; background:rgba(0,0,0,0.31); box-sizing: border-box;
+    position: fixed; top: 0; left: 0; z-index: 10003; display: flex; justify-content: center; align-items: center;
+    image{width: 100%; height: 100%;}
+    .skip{
+        position: absolute; top: 1rem; left: 1rem; color: white; color: white;
+    }
+}
 
 </style>

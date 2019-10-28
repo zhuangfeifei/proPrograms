@@ -1,0 +1,52 @@
+<template>
+    <view>
+        <web-view src="https://www.proseer.cn"></web-view>
+    </view>
+</template>
+
+<script>
+import wepy from 'wepy'
+import { connect } from 'wepy-redux'
+import 'wepy-async-function'
+
+@connect({
+    
+})
+    
+export default class Web extends wepy.page {
+    
+    config = {
+        navigationBarTitleText: ''
+    }
+    
+    components = {
+    
+    }
+    
+    data = {
+        webUrl:'https://www.proseer.cn'
+    }
+    
+    computed = {
+    
+    }
+    
+    methods = {
+    
+    }
+    
+    onLoad(option) {
+        console.log(option)
+        this.webUrl = option.webUrl
+        this.$apply()
+    }
+
+    onShareAppMessage(options) {
+        console.log(options.webViewUrl)
+    }
+}
+</script>
+
+<style lang='less'>
+
+</style>

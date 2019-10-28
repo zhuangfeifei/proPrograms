@@ -1,0 +1,156 @@
+<template>
+    <view id="label">
+
+        <view class="h4" @tap="go">跳过选择</view>
+
+        <view class="labelLists">
+            <block wx:for="{{labelList}}" wx:key="{{index}}">
+                <h3>{{item.Tag}}（多选）</h3>
+                <view class="labelTitle">
+                    <view @tap="click" class="{{items.IsCheck?'active':''}}" data-index="{{index}}" data-indexs="{{indexs}}" wx:for="{{item.Son}}" wx:key="{{indexs}}" wx:for-index="indexs" wx:for-item="items">
+                        {{items.Tag}}
+                    </view>
+                </view>
+            </block>
+        </view>
+
+        <view class="login_btn" @tap="send">我选好了</view>
+
+    </view>
+</template>
+
+<script>
+import wepy from 'wepy'
+import { connect } from 'wepy-redux'
+import 'wepy-async-function'
+
+@connect({
+    
+})
+    
+export default class Label extends wepy.page {
+    
+    config = {
+        navigationBarTitleText: '选择标签'
+    }
+    
+    components = {
+    
+    }
+    
+    data = {
+        labelList:'', indexActive:-1
+    }
+    
+    computed = {
+    
+    }
+    
+    methods = {
+        click(e){
+            let count = e.currentTarget.dataset
+            this.labelList[count.index].Son[count.indexs].IsCheck = !this.labelList[count.index].Son[count.indexs].IsCheck
+            this.$apply()
+        },
+        send(){
+            let list = {Tags:[ ]}
+            for(let index in this.labelList){
+                for(let val of this.labelList[index].Son){
+                    val.IsCheck ? list.Tags.push(val) : ''
+                }
+            }
+            // console.log(list)
+            wepy.$Api.set(list).then(res=>{
+                // console.log(res.data)
+                if(res.data.IsSuccess){
+                    wx.showToast({
+                        title: '设置成功',
+                        icon: 'success',
+                        duration: 2000
+                    })
+                    setTimeout(()=>{
+                        wx.switchTab({url:`/pages/home/index`})
+                    },2000)
+                    wepy.$Api.getcache().then(res=>{
+                        // console.log(res.data)
+                        if(res.data.IsSuccess){
+                            wx.setStorage({key:'userinfo', data: res.data.Data})
+                            wepy.$store.dispatch({
+                                type: 'userinfos',
+                                payload: res.data.Data
+                            });
+                            this.$apply()
+                        }else{
+                            wx.showToast({
+                                title: res.data.Message,
+                                icon: 'none',
+                                duration: 2000
+                            })
+                        }
+                        this.$apply()
+                    })
+                    this.$apply()
+                }else{
+
+                }
+                
+            },err=>{
+
+            })
+        },
+        go(){
+            wx.switchTab({url:`/pages/home/index`})
+        }
+    }
+    
+    onLoad() {
+        wepy.$Api.getall().then(res=>{
+            // console.log(res.data)
+            if(res.data.IsSuccess){
+                this.labelList = res.data.Data
+                this.$apply()
+            }else{
+
+            }
+            
+        },err=>{
+
+        })
+    }
+}
+</script>
+
+<style lang='less'>
+#label{
+    width: 100%; height: 100%; background-color: white;
+}
+
+.h4{
+    width: 100%; font-size: 24rpx; color: #515356; text-align: right; box-sizing: border-box; padding: 30rpx;
+}
+
+.labelLists{
+    width: 100%; box-sizing: border-box; padding-left: 63rpx; font-size: 24rpx; text-align: center; 
+    h3{color: #333333; font-weight: 600;}
+    .labelTitle{
+        width: 100%; display: flex; flex-wrap: wrap; margin-top: 30rpx; margin-bottom: 40rpx;
+        view{
+            width: 188rpx; height: 52rpx; line-height: 52rpx; color: #515356; margin-right: 24rpx; margin-bottom: 20rpx;
+            border-radius:26rpx; border:2rpx solid rgba(0,0,0,0.09);
+        }
+        view:nth-child(3n){margin-right: 0;}
+        .active{
+            background:rgba(252,102,25,0.09); border-radius:26rpx; border:2rpx solid rgba(252,102,25,1); color: #FC6619;
+        }
+    }
+}
+
+
+.login_btn{
+    width: 690rpx; height: 94rpx; background:linear-gradient(270deg,rgba(255,94,146,1) 0%,rgba(255,135,52,1) 100%);
+    text-align: center; line-height: 94rpx; border-radius: 47rpx; color: #FFFFFF; font-size: 36rpx;
+    position: absolute; bottom: 40rpx; left: 30rpx;
+}
+
+
+</style>

@@ -2,7 +2,7 @@
     <view id="login">
 
         <view class="login_logo">
-            <image src="/images/home/zhen.png" mode="aspectFill" lazy-load />
+            <image src="https://zcxy.oss-cn-beijing.aliyuncs.com/xcx/zhen.png" mode="aspectFill" lazy-load />
         </view>
 
         <view class="login_main">
@@ -15,7 +15,16 @@
             <!-- <view class="registered_btn" @tap="routers">用户注册</view> -->
         </view>
 
-        <view class="ForgotPassword">忘记密码</view>
+        <!-- <view class="ForgotPassword">忘记密码</view> -->
+
+        <view wx:if="{{isOks}}" class="isBindPhone" @tap="close">
+            <view class="isBindPhone_">
+                <view class="isOk">
+                    <p wx:for="{{LoginGift}}" wx:key="{{index}}">{{item}}</p>
+                </view>
+                <view class="bind">确定</view>
+            </view>
+        </view>
         
 
     </view>
@@ -27,6 +36,12 @@ import { connect } from 'wepy-redux'
 import 'wepy-async-function'
 
 @connect({
+    userinfo(state) {
+        return state.counter.userinfo;
+    },
+    InviteUserId(state) {
+        return state.counter.InviteUserId;
+    },
     
 })
     
@@ -43,8 +58,10 @@ export default class Login extends wepy.page {
     data = {
         isCode: true, time: 60,
         loginList: {
-            Mobile:'', Captcha:'',
-        }
+            Mobile:'', Captcha:'', InviteUserId:''
+        },
+        isOks: false,LoginGift:[],
+        Tag:1
     }
     
     computed = {
@@ -52,9 +69,18 @@ export default class Login extends wepy.page {
     }
     
     methods = {
+        close(){
+            this.isOks=false
+            if(this.Tag == 0){
+                wx.navigateTo({url:`/pages/home/label`})
+            }else{
+                wx.switchTab({url:'/pages/my/my'})
+            }
+            this.$apply()
+        },
         getCode(){
             if(this.isCode){
-                var myreg = /^[1][3,4,5,7,8][0-9]{9}$/;
+                var myreg = /^[1][3,4,5,6,7,8,9][0-9]{9}$/;
                 if (myreg.test(this.loginList.Mobile)) {
                     wepy.$Api.captcha({Mobile: this.loginList.Mobile, Type: 2}).then(res=>{
                         // console.log(res.data)
@@ -98,36 +124,55 @@ export default class Login extends wepy.page {
             this.loginList.Captcha = e.detail.value
         },
         loginMethod(){
+            this.loginList.InviteUserId = this.InviteUserId
             wepy.$Api.quicklogin(this.loginList).then(res=>{
-                console.log(res.data)
+                // console.log(res.data)
                 if(res.data.IsSuccess){
+                    wx.setStorage({key:'userinfo', data: res.data.Data})
                     wepy.$store.dispatch({
                         type: 'userinfos',
                         payload: res.data.Data
                     });
-                    if(res.data.Code == '27'){
-                        wx.showModal({
-                            title: '绑定成功',
-                            content: '10创币已到账！',
-                            confirmText: '去查看',
-                            success (res) {
-                                if (res.confirm) {
-                                    wx.switchTab({url:'/pages/my/my'})
-                                } else if (res.cancel) {
-                                console.log('用户点击取消')
-                                }
-                            }
-                        })
+                    if(res.data.Dictionary.LoginGift.length>0){
+                        this.isOks=true
+                        this.LoginGift=res.data.Dictionary.LoginGift
+                        this.Tag=res.data.Data.Tag
+                        this.$apply()
+                        // wx.showModal({
+                        //     title: '绑定成功',
+                        //     content: '10创币已到账！',
+                        //     confirmText: '去查看',
+                        //     success (res1) {
+                        //         if (res1.confirm) {
+                        //             wx.switchTab({url:'/pages/my/my'})
+                        //         } else if (res2.cancel) {
+                        //         // console.log('用户点击取消')
+                        //             if(res.data.Data.Tag == 0){
+                        //                 wx.navigateTo({url:`/pages/home/label`})
+                        //             }
+                        //         }
+                        //     }
+                        // })
                     }else{
                         wx.showToast({
                             title: '绑定成功',
                             icon: 'success',
                             duration: 2000
                         })
-                        setTimeout(()=>{
-                            wx.navigateBack()
-                        },2000)
+                        if(res.data.Data.Tag == 0){
+                            wx.navigateTo({url:`/pages/home/label`})
+                        }else{
+                            setTimeout(()=>{
+                                wx.navigateBack()
+                            },2000)
+                        }
                     }
+                }else{
+                    wx.showToast({
+                        title: res.data.Message,
+                        icon: 'none',
+                        duration: 2000
+                    })
                 }
             })
         },
@@ -189,6 +234,33 @@ export default class Login extends wepy.page {
 
 .ForgotPassword{
     width: 100%; text-align: center; color: #999999; position: absolute; bottom: 80rpx; left: 0;
+}
+
+
+
+
+
+
+.isBindPhone{
+    width: 100%; height: 100%; background:rgba(0,0,0,0.31); box-sizing: border-box;
+    position: fixed; top: 0; left: 0; z-index: 10003; 
+    display: flex; align-items: center; justify-content: center;
+    .isBindPhone_{
+        width: 624rpx; min-height: 350rpx; background-color: #FFFFFF; border-radius: 20rpx; color: #939393;
+        text-align: center; box-sizing: border-box; padding-top: 30rpx; position: relative; padding-bottom: 50rpx;
+        .isOk{
+            color: #333333; font-size: 30rpx; margin-top: 30rpx; padding: 0 30rpx;
+        }
+        .h4{font-size: 40rpx; color: #333333; font-family:PingFangSC; font-weight:600; margin-bottom: 10rpx;}
+        image{width: 120rpx; height: 84rpx; margin: 0 auto; margin-bottom: 40rpx; margin-top: 80rpx}
+        .myCoupon{font-size: 24rpx; color: #FC6619;}
+        .bind{
+            width:462rpx; height:100rpx; border-radius:50rpx; line-height: 100rpx; color: white;
+            font-size: 36rpx; margin: 0 auto; font-weight: 600; margin-top: 20rpx;
+            background:linear-gradient(270deg,rgba(255,94,146,1) 0%,rgba(255,135,52,1) 100%);
+
+        }
+    }
 }
 
 

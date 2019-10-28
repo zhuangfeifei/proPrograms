@@ -13,6 +13,9 @@ module.exports = {
     collegedetail: (data) => { // 课程详情
         return api.request(`/college/collegedetail/${data}`, 'get', wepy.$store.getState().counter.userinfo.Token)
     },
+    collegedetailnu: (data) => { // 课程详情
+        return api.request(`/college/collegedetailnu/${data}`, 'get', wepy.$store.getState().counter.userinfo.Token)
+    },
     status: (data) => { // 判断是否购买
         return api.request('/order/status', 'post', wepy.$store.getState().counter.userinfo.Token, data, 'application/json')
     },
@@ -51,5 +54,56 @@ module.exports = {
     },
     getUser: (data) => { // 获取个人信息
         return api.request('/user/get', 'post', wepy.$store.getState().counter.userinfo.Token, data)
+    },
+    feedback: (data) => { // 用户反馈
+        return api.request('/combination/feedback', 'post', wepy.$store.getState().counter.userinfo.Token, data)
+    },
+    orderMy: (data) => { // 创币的加减记录
+        return api.request('/order/my', 'post', wepy.$store.getState().counter.userinfo.Token, data, 'application/json')
+    },
+    usermanual: (data) => { // 用户手册
+        return api.request(`/combination/usermanual`, 'get', wepy.$store.getState().counter.userinfo.Token, '')
+    },
+    recordwatch: (data) => { // 记录观看进度
+        return api.request(`/combination/recordwatch`, 'post', wepy.$store.getState().counter.userinfo.Token, data)
+    },
+    getwatch: (data) => { // 查看观看进度
+        return api.request(`/combination/getwatch`, 'post', wepy.$store.getState().counter.userinfo.Token, data)
+    },
+    mywatch: (data) => { // 我的观看进度
+        return api.request(`/combination/mywatch`, 'post', wepy.$store.getState().counter.userinfo.Token, data)
+    },
+    formid: (data) => { // 我的观看进度
+        return api.request(`/combination/formid?formId=${data}&from=from`, 'get', wepy.$store.getState().counter.userinfo.Token, '')
+    },
+    getall: (data) => { // 获取用户标签
+        return api.request(`/tag/getall`, 'get', wepy.$store.getState().counter.userinfo.Token, '')
+    },
+    set: (data) => { // 保存用户标签
+        return api.request(`/tag/set`, 'post', wepy.$store.getState().counter.userinfo.Token, data, 'application/json')
+    },
+    signin: (data) => { // 签到
+        return api.request(`/point/signin`, 'get', wepy.$store.getState().counter.userinfo.Token, '')
+    },
+    signinlately: (data) => { // 签到记录
+        return api.request(`/point/signinlately`, 'get', wepy.$store.getState().counter.userinfo.Token, '')
+    },
+    signinpointlist: (data) => { // 签到奖品信息
+        return api.request(`/point/signinpointlist`, 'get', wepy.$store.getState().counter.userinfo.Token, '')
+    },
+    pointinfo: (data) => { // 获取用户积分记录
+        return api.request(`/point/pointinfo`, 'post', wepy.$store.getState().counter.userinfo.Token, data)
+    },
+    pointexchangelist: (data) => { // 可兑换的优惠券【可不登录】
+        return api.request(`/coupon/pointexchangelist`, 'get', wepy.$store.getState().counter.userinfo.Token, '')
+    },
+    myCouponList: (data) => { // 我的优惠券
+        return api.request(`/coupon/my`, 'post', wepy.$store.getState().counter.userinfo.Token, data)
+    },
+    share: (data) => { // 分享
+        return api.request(`/point/share`, 'post', wepy.$store.getState().counter.userinfo.Token, data)
+    },
+    setxcxtask: (data) => { // 用户引导
+        return api.request(`/tag/setxcxtask`, 'post', wepy.$store.getState().counter.userinfo.Token, data, 'application/json')
     },
 }

@@ -14,8 +14,8 @@
                         <view class="classificationAllList_lecturer">
                             <!-- <text wx:if="{{item.CollagePrice > 0}}">¥{{item.CollagePrice / 100}}</text> -->
                             <!-- <image src="/images/home/free.png" /> -->
-                            <image  src="/images/home/buyend.png" />
-                            <text> 讲师 | {{item.TeacherName}}</text>
+                            <image wx:if="{{!isIos}}" src="/images/home/buyend.png" />
+                            <text class="TeacherName"> 讲师 | {{item.TeacherName}}</text>
                         </view>
                     </view>
                 </view>
@@ -23,7 +23,7 @@
         </view>
 
         <view wx:if="{{myCourseList.length == 0}}" class="noClassificationAllList">
-            <image src="/images/home/undraw_reading_list_4boi.png" mode="aspectFill" lazy-load/>
+            <image src="https://zcxy.oss-cn-beijing.aliyuncs.com/xcx/undraw_reading_list_4boi.png" mode="aspectFill" lazy-load/>
             <text>\n您还没有课程！</text>
         </view>
 
@@ -50,7 +50,7 @@ export default class MyCourse extends wepy.page {
     }
     
     data = {
-        myCourseList:[]
+        myCourseList:[], isIos: false
     }
     
     computed = {
@@ -74,6 +74,14 @@ export default class MyCourse extends wepy.page {
                 this.myCourseList = res.data.Data
             }
             this.$apply()
+        })
+        wx.getSystemInfo({ // 获取设备信息
+            success:(res)=> {
+                // console.log(res)
+                this.isIos = res.model.indexOf("iPhone")==-1 ? false : true;
+                this.$apply()
+            }
+
         })
     }
 
@@ -130,8 +138,8 @@ export default class MyCourse extends wepy.page {
             // }
             .classificationAllList_lecturer{
                 width: 100%; margin-top: 22rpx;
-                text:nth-child(1){ color: #F74D4D; font-family:PingFangSC-Semibold; font-weight:600; }
-                text:nth-child(2){ color: #999999; color: 24rpx; }
+                // text:nth-child(1){ color: #F74D4D; font-family:PingFangSC-Semibold; font-weight:600; }
+                .TeacherName{ color: #999999; color: 24rpx; }
                 image{
                     width: 56rpx; height: 34rpx; position: relative; top: 8rpx;
                 }

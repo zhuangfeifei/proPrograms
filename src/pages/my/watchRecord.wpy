@@ -1,0 +1,103 @@
+<template>
+    <view id="watchRecord">
+        
+        <view wx:for="{{mywatchList}}" @tap="details" data-item="{{item}}" wx:key="{{index}}" class="watchRecordList">
+            <image src="{{item.SmallImageUrl}}" mode="aspectFill" lazy-load/>
+            <view class="watchRecordList_content">
+                <view class="h2">{{item.Title}}</view>
+                <view class="time">最后浏览：{{item.LastWatch}}</view>
+                <progress percent="{{item.RecRate}}" activeColor="#FF8734" backgroundColor="#D7D7D7" border-radius="4" stroke-width="4" 
+                    show-info active font-size="12"/>
+            </view>
+        </view>
+
+    </view>
+</template>
+
+<script>
+import wepy from 'wepy'
+import { connect } from 'wepy-redux'
+import 'wepy-async-function'
+
+
+@connect({
+    
+})
+    
+export default class WatchRecord extends wepy.page {
+    
+    config = {
+        navigationBarTitleText: '播放记录'
+    }
+    
+    components = {
+    
+    }
+    
+    data = {
+        mywatchList:''
+    }
+    
+    computed = {
+    
+    }
+    
+    methods = {
+        details(e){
+            // console.log(e.currentTarget.dataset.item)
+            wepy.$store.dispatch({
+                type: 'CollegeIds',
+                payload: e.currentTarget.dataset.item.CollegeId
+            });
+            wx.navigateTo({url:`/pages/home/details`})
+        },
+    }
+    
+    onLoad() {
+        wepy.$Api.mywatch({PageSize: 10, PageIndex: 1}).then(res=>{
+            // console.log(res.data)
+            if(res.data.IsSuccess){
+                this.mywatchList = res.data.Data
+                this.$apply()
+            }else{
+                wx.showToast({
+                    title: res.data.Message,
+                    icon: 'none',
+                    duration: 2000
+                })
+            }
+            this.$apply()
+        })
+    }
+}
+</script>
+
+<style lang='less'>
+#watchRecord{
+    width: 100%; padding: 30rpx; box-sizing: border-box;
+}
+
+
+
+.watchRecordList{
+    width: 100%; height: 120rpx; display: flex; justify-content: space-between; margin-bottom: 46rpx;
+    image{width: 200rpx; height: 100%; background-color: cadetblue; border-radius: 10rpx;}
+    .watchRecordList_content{
+        width: 456rpx; font-size: 24rpx; color: #999999;
+        .h2{
+            width: 100%; height: 30rpx; line-height: 30rpx; font-size: 28rpx; color: #333333; font-weight: 600;
+            display: -webkit-box; margin-top: 10rpx;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            word-wrap: break-word;
+            white-space: normal !important;
+            -webkit-line-clamp: 1;
+            -webkit-box-orient: vertical;
+        }
+        .time{margin-top: 15rpx; margin-bottom: 5rpx;}
+    }
+}
+
+
+
+</style>

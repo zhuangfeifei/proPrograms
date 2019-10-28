@@ -1,6 +1,6 @@
 <style lang="less">
 page{
-  width: 100%; height: 100%; font-size: 28rpx; font-family:PingFangSC-Regular; font-weight:400;
+  width: 100%; height: 100%; font-size: 28rpx; font-family:PingFangSC-Regular; font-weight:400; z-index: 10000;
 }
 .container {
   height: 100%;
@@ -33,17 +33,30 @@ export default class extends wepy.app {
       'pages/home/details',
       'pages/home/classification',
       'pages/home/evaluation',
+      'pages/home/label',
+      'pages/home/pay',
+      'pages/home/web',
       'pages/login/login',
       'pages/login/registered',
       'pages/login/successfully',
+      'pages/login/network',
       'pages/my/my',
       'pages/my/setup',
       'pages/my/topUp',
       'pages/my/successup',
       'pages/my/myCourse',
       'pages/my/businessCard',
+      'pages/my/feedback',
+      'pages/my/feedbackSuccess',
+      'pages/my/topUpRecord',
+      'pages/my/manual',
+      'pages/my/watchRecord',
+      'pages/my/myCoupons',
+      'pages/my/myOrder',
       'pages/authorization/authorization',
       'pages/authorization/agreement',
+      'pages/integral/integral',
+      'pages/integral/sign',
     ],
     window: {
       backgroundTextStyle: 'light',
@@ -58,6 +71,12 @@ export default class extends wepy.app {
           text: '首页',
           iconPath: 'images/home/homes.png',
           selectedIconPath: 'images/home/home.png'
+        },
+        {
+          pagePath: 'pages/home/classification',
+          text: '课程',
+          iconPath: 'images/home/directorys.png',
+          selectedIconPath: 'images/home/directory.png'
         },
         {
           pagePath: 'pages/my/my',
@@ -115,13 +134,17 @@ export default class extends wepy.app {
                           Api.wxregister(jsonData).then(res=>{
                             // console.log('asdas',res.data)
                             if(res.data.IsSuccess){
-                                  // wepy.setStorage('userinfo', res.data.Data)
+                                  wx.setStorage({key:'userinfo', data: res.data.Data})
                                   wepy.$store.dispatch({
                                     type: 'userinfos',
                                     payload: res.data.Data
                                   });
                             }else{
-
+                                wx.showToast({
+                                    title: res.data.Message,
+                                    icon: 'none',
+                                    duration: 2000
+                                })
                             }
                           })
                       }
@@ -130,9 +153,9 @@ export default class extends wepy.app {
                 }
               })
             } else {
-              wepy.navigateTo({
-                url: '/pages/authorization/authorization'
-              })
+              // wepy.navigateTo({
+              //   url: '/pages/authorization/authorization'
+              // })
             }
           }
         })
@@ -150,13 +173,16 @@ export default class extends wepy.app {
           }
       })
       wx.onNetworkStatusChange(function (res) {
-        console.log(res.isConnected)
-        console.log(res.networkType)
-        wx.showToast({
-            title: res.networkType,
-            icon: 'none',
-            duration: 2000
-        })
+        // console.log(res.isConnected)
+        // console.log(res.networkType)
+        if(res.networkType === 'none'){
+          wx.redirectTo ({url:'/pages/login/network'})
+        }
+        // wx.showToast({
+        //     title: res.networkType,
+        //     icon: 'none',
+        //     duration: 2000
+        // })
       })
     })
   }
@@ -165,7 +191,8 @@ export default class extends wepy.app {
     const networkType = await this.sleep()
     var self = this
     if(networkType === 'none'){
-      console.log(networkType)
+      // console.log(networkType)
+      wx.redirectTo ({url:'/pages/login/network'})
     }else{
         // 获取小程序更新机制兼容
         if (wx.canIUse('getUpdateManager')) {
@@ -173,7 +200,7 @@ export default class extends wepy.app {
           //1. 检查小程序是否有新版本发布
           updateManager.onCheckForUpdate(function(res) {
             // 请求完新版本信息的回调
-            console.log(res)
+            // console.log(res)
             if (res.hasUpdate) {
               //检测到新版本，需要更新，给出提示
               wx.showModal({

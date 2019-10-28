@@ -4,7 +4,12 @@ import { INCREMENT, DECREMENT, ASYNC_INCREMENT } from '../types/counter'
 
 const defaultState = {
   userinfo:'',
-  CollegeId:''
+  CollegeId:'',
+  CategoryId:'',
+  CategoryIdIndex:'',
+  collegedetail:'',
+  coupon:'',
+  InviteUserId:'',
 }
 
 export default handleActions({
@@ -13,5 +18,20 @@ export default handleActions({
   },
   CollegeIds(state, action){
     return { ...state, CollegeId: action.payload }
+  },
+  CategoryIds(state, action){
+    return { ...state, CategoryId: action.payload }
+  },
+  CategoryIdsIndex(state, action){
+    return { ...state, CategoryIdIndex: action.payload }
+  },
+  collegedetail(state, action){
+    return { ...state, collegedetail: action.payload }
+  },
+  coupon(state, action){
+    return { ...state, coupon: action.payload }
+  },
+  InviteUserId(state, action){
+    return { ...state, InviteUserId: action.payload }
   },
 }, defaultState)
