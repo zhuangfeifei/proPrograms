@@ -333,9 +333,10 @@ export default class My extends wepy.page {
         })
         return {
             title: '箴创学院',
-            path: '/pages/my/my?InviteUserId='+this.userinfo.UserId,
+            path: '/pages/home/index?InviteUserId='+this.userinfo.UserId,
+            imageUrl:'https://zcxy.oss-cn-beijing.aliyuncs.com/xcx/shareImg.jpeg',
             success(res){
-                console.log(res)
+                
             }
         }
     }

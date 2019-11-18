@@ -10,6 +10,7 @@ const defaultState = {
   collegedetail:'',
   coupon:'',
   InviteUserId:'',
+  ActivityCode:0,
 }
 
 export default handleActions({
@@ -33,5 +34,8 @@ export default handleActions({
   },
   InviteUserId(state, action){
     return { ...state, InviteUserId: action.payload }
+  },
+  ActivityCode(state, action){
+    return { ...state, ActivityCode: action.payload }
   },
 }, defaultState)

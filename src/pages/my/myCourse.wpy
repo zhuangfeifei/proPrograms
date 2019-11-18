@@ -92,7 +92,8 @@ export default class MyCourse extends wepy.page {
         }
         return {
             title: '箴创学院',
-            path: '/pages/home/index'
+            path: '/pages/home/index',
+            imageUrl:'https://zcxy.oss-cn-beijing.aliyuncs.com/xcx/shareImg.jpeg',
         }
     }
 }

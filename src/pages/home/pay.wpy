@@ -105,7 +105,7 @@ export default class Pay extends wepy.page {
                         }
                         wepy.$Api.createorder(list).then(result=>{ // 创建订单
                             // prepay_id, nonce_str, paySign, timeStamp
-                            console.log(result.data)
+                            // console.log(result.data)
                             wx.hideLoading()
                             if(result.data.Code === '2' || result.data.Code === '12'){
                                 wx.showToast({

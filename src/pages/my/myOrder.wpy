@@ -54,7 +54,7 @@
                             <h5>{{item.GoodsName}}</h5>
                             <view>
                                 <image src="/images/home/tuanjia.png" />
-                                <text>创币{{item.PayAmount}}</text>
+                                <text>创币{{item.PayAmount/100}}</text>
                             </view>
                         </view>
                     </view>
@@ -142,7 +142,9 @@ export default class MyOrder extends wepy.page {
                 type: 'CollegeIds',
                 payload: e.currentTarget.dataset.item.GoodsId
             });
-            wx.navigateTo({url:`/pages/home/details`})
+            if(e.currentTarget.dataset.item.ExtendInfo.Status==3){
+                wx.navigateTo({url:`/pages/home/details`})
+            }
         },
     }
 
@@ -195,6 +197,19 @@ export default class MyOrder extends wepy.page {
         if(this.isGet){
             this.PageIndex ++
             this.myOrderListMethods()
+        }
+    }
+
+
+    onShareAppMessage(res) {
+        if (res.from === 'button') {
+            // 来自页面内转发按钮
+            console.log(res.target)
+        }
+        return {
+            title: '箴创学院',
+            path: '/pages/home/index',
+            imageUrl:'https://zcxy.oss-cn-beijing.aliyuncs.com/xcx/shareImg.jpeg',
         }
     }
 }

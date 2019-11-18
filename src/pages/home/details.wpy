@@ -271,7 +271,14 @@ export default class Details extends wepy.page {
                         // console.log(res.data)
                         if(res.data.IsSuccess){
                             this.OrderStatus = res.data.Data.Goods[0].OrderStatus
-                            if(res.data.Data.Goods[0].OrderStatus == 102){
+                            // console.log(this.OrderStatus)
+                            if(res.data.Data.Goods[0].OrderStatus == 106){
+                                wx.showToast({
+                                    title: '此课程正在参加拼团，请至箴创学院官网查看最新进度！',
+                                    icon: 'none',
+                                    duration: 2000
+                                })
+                            }else if(res.data.Data.Goods[0].OrderStatus == 102){
                                 wx.showToast({
                                     title: this.isIos?'您还没有解锁此课程，请点击下方去官网咨询':'您还没有购买此课程',
                                     icon: 'none',
@@ -386,8 +393,6 @@ export default class Details extends wepy.page {
                             openId: this.userinfo.OpenId
                         }
                         wepy.$Api.createorder(list).then(res=>{ // 创建订单
-                            // prepay_id, nonce_str, paySign, timeStamp
-                            // console.log(res.data)
                             if(res.data.Code === '2' || res.data.Code === '12'){
                                 this.onShow()
                                 wx.showToast({
@@ -559,7 +564,13 @@ export default class Details extends wepy.page {
                         // console.log(res.data)
                         if(res.data.IsSuccess){
                             this.OrderStatus = res.data.Data.Goods[0].OrderStatus
-                            if(res.data.Data.Goods[0].OrderStatus == 102){
+                            if(res.data.Data.Goods[0].OrderStatus == 106){
+                                wx.showToast({
+                                    title: '此课程正在参加拼团，请至箴创学院官网查看最新进度！',
+                                    icon: 'none',
+                                    duration: 4000
+                                })
+                            }else if(res.data.Data.Goods[0].OrderStatus == 102){
                                 wx.showToast({
                                     title: this.isIos?'您还没有解锁此课程，请点击下方去官网咨询':'您还没有购买此课程',
                                     icon: 'none',
@@ -633,9 +644,8 @@ export default class Details extends wepy.page {
         return {
             title: '箴创学院',
             path: '/pages/home/index?CollegeId='+this.CollegeId,
-            imageUrl: '',
             success(res){
-                
+
             }
         }
     }

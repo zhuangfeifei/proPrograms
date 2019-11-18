@@ -213,6 +213,7 @@ export default class Evaluation extends wepy.page {
         return {
             title: '箴创学院',
             path: '/pages/home/index',
+            imageUrl:'https://zcxy.oss-cn-beijing.aliyuncs.com/xcx/shareImg.jpeg',
             success(res){
                 wepy.$Api.share({TargetType:3, TargetId:'', Type:0}).then(res=>{ 
                     // console.log(res.data)

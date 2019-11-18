@@ -348,6 +348,7 @@ export default class Classification extends wepy.page {
         return {
             title: '箴创学院',
             path: '/pages/home/index',
+            imageUrl:'https://zcxy.oss-cn-beijing.aliyuncs.com/xcx/shareImg.jpeg',
             success(res){
             }
         }

@@ -118,9 +118,12 @@
             <view>+{{Point}}积分</view>
         </view>
 
-        <!-- <view wx:if="{{isHaibao}}" @tap="Haibao" class="haibao">
-            <image src="https://zcxy.oss-cn-beijing.aliyuncs.com/xcx/20190927%E5%9B%BD%E5%BA%86%E5%BC%B9%E7%AA%97.png" lazy-load/>
-        </view> -->
+        <view wx:if="{{isHaibao}}" class="haibao">
+            <view>
+                <image class="button" @tap="details" data-item='{{CollegeId}}' src="https://zcxy.oss-cn-beijing.aliyuncs.com/xcx/button.png" lazy-load/>
+                <image class="close" @tap="isHaibaoMethod" src="https://zcxy.oss-cn-beijing.aliyuncs.com/xcx/close.png" lazy-load/>
+            </view>
+        </view>
 
         
         
@@ -169,7 +172,8 @@ export default class Home extends wepy.page {
         isLogin: false,
         Point:0,
         isSign: false,
-        screenHeight:''
+        screenHeight:'',
+        CollegeId: {CollegeId: 89}
     }
     
     computed = {
@@ -182,6 +186,10 @@ export default class Home extends wepy.page {
             this.isLogin = false
             this.$apply()
             wx.switchTab({url:'/pages/home/classification'})
+        },
+        isHaibaoMethod(){
+            this.isHaibao = false
+            this.$apply()
         },
         Haibao(){
             this.isLogin = false
@@ -233,41 +241,19 @@ export default class Home extends wepy.page {
         },
         detailsBanner(e){
 
-            // console.log(e.currentTarget.dataset.item)
-            // if(this.userinfo == ''){
-            //     wx.showModal({
-            //         // title: '请登录',
-            //         content: '请登录',
-            //         confirmText: '去登录',
-            //         success (res) {
-            //             if (res.confirm) {
-            //                 wx.navigateTo({url:'/pages/authorization/authorization'})
-            //             } else if (res.cancel) {
-            //             // console.log('用户点击取消')
-            //             }
-            //         }
-            //     })
-            //     return
-            // }
-
-
-            // if(e.currentTarget.dataset.index==0){
-            //     wx.navigateTo({url:`/pages/home/web`})
-            // }else{
-                let jumpInfo=e.currentTarget.dataset.item.JumpInfo;
-                if(jumpInfo=="my")
-                {
-                    wx.switchTab({url:'/pages/my/my'})
-                }
-                else
-                {
-                    wepy.$store.dispatch({
-                        type: 'CollegeIds',
-                        payload: jumpInfo
-                    });
-                    wx.navigateTo({url:`/pages/home/details`})
-                }
-            // }
+            let jumpInfo=e.currentTarget.dataset.item.JumpInfo;
+            if(jumpInfo=="my")
+            {
+                wx.switchTab({url:'/pages/my/my'})
+            }
+            else
+            {
+                wepy.$store.dispatch({
+                    type: 'CollegeIds',
+                    payload: jumpInfo
+                });
+                wx.navigateTo({url:`/pages/home/details`})
+            }
         },
         fineCourseSwiper(e){
             // console.log(e.detail.current)
@@ -295,19 +281,27 @@ export default class Home extends wepy.page {
     onLoad(option){
         if(option.CollegeId || option.q){
             if(option.q){
-                var scan_url = decodeURIComponent(options.q);
+                var scan_url = decodeURIComponent(option.q);
                 var CollegeId = scan_url.split('?')[1].split('=')[1]
-                wepy.$store.dispatch({
-                    type: 'CollegeIds',
-                    payload: CollegeId
-                });
+                if(CollegeId > 0){
+                    wepy.$store.dispatch({
+                        type: 'CollegeIds',
+                        payload: CollegeId
+                    });
+                    wx.navigateTo({url:`/pages/home/details`})
+                }else{
+                    wepy.$store.dispatch({
+                        type: 'ActivityCode',
+                        payload: CollegeId
+                    });
+                }
             }else{
                 wepy.$store.dispatch({
                     type: 'CollegeIds',
                     payload: option.CollegeId
                 });
+                wx.navigateTo({url:`/pages/home/details`})
             }
-            wx.navigateTo({url:`/pages/home/details`})
         }
         if(option.InviteUserId){
             wepy.$store.dispatch({
@@ -316,6 +310,7 @@ export default class Home extends wepy.page {
             });
         }
 
+        this.isHaibao = true
 
         wx.getStorage({
             key:'userinfo',
@@ -343,14 +338,6 @@ export default class Home extends wepy.page {
             this.isSign = false
             this.$apply()
         },2000)
-        // var scan_url = 'https://www.proseer.cn/zcxypc?CollegeId=79'
-        // var a = scan_url.split('?')[1].split('=')
-        // console.log(a[1])
-        // wx.showToast({
-        //     title: a[1],
-        //     icon: 'none',
-        //     duration: 2000
-        // })
         wx.getStorage({
             key:'userinfo',
             success:res=>{
@@ -404,6 +391,7 @@ export default class Home extends wepy.page {
         return {
             title: '箴创学院',
             path: '/pages/home/index',
+            imageUrl:'https://zcxy.oss-cn-beijing.aliyuncs.com/xcx/shareImg.jpeg',
             success(res){
                 
             }
@@ -608,11 +596,17 @@ export default class Home extends wepy.page {
 
 
 .haibao{
-    width: 100%; height: 100%; background:rgba(0,0,0,0.31); box-sizing: border-box;
+    width: 100%; height: 100%; background:rgba(0,0,0,0.6); box-sizing: border-box;
     position: fixed; top: 0; left: 0; z-index: 10003; display: flex; justify-content: center; align-items: center;
-    image{width: 100%; height: 100%;}
+    view{
+        width: 74%; height: 45%;
+        background: url('https://zcxy.oss-cn-beijing.aliyuncs.com/xcx/yanjie.png') no-repeat; background-size: 100% 100%;
+        position: relative;
+        .button{width: 65%; height: 100rpx; position: absolute; bottom: 30rpx; left: 17.5%;}
+        .close{width: 51rpx; height: 114rpx; position: absolute; bottom: -114rpx; left: calc(50% - 25.5rpx);}
+    }
     .skip{
-        position: absolute; top: 1rem; left: 1rem; color: white; color: white;
+        position: absolute; top: 1rem; left: 1rem; color: white;
     }
 }
 

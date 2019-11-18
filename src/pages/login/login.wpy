@@ -42,6 +42,9 @@ import 'wepy-async-function'
     InviteUserId(state) {
         return state.counter.InviteUserId;
     },
+    ActivityCode(state) {
+        return state.counter.ActivityCode;
+    },
     
 })
     
@@ -58,7 +61,7 @@ export default class Login extends wepy.page {
     data = {
         isCode: true, time: 60,
         loginList: {
-            Mobile:'', Captcha:'', InviteUserId:''
+            Mobile:'', Captcha:'', InviteUserId:'', ActivityCode:0
         },
         isOks: false,LoginGift:[],
         Tag:1
@@ -125,7 +128,8 @@ export default class Login extends wepy.page {
         },
         loginMethod(){
             this.loginList.InviteUserId = this.InviteUserId
-            wepy.$Api.quicklogin(this.loginList).then(res=>{
+            this.loginList.ActivityCode = this.ActivityCode
+            wepy.$Api.quicklogin(this.loginList).then(res=>{ 
                 // console.log(res.data)
                 if(res.data.IsSuccess){
                     wx.setStorage({key:'userinfo', data: res.data.Data})
