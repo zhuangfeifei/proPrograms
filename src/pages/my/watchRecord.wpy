@@ -54,7 +54,7 @@ export default class WatchRecord extends wepy.page {
     }
     
     onLoad() {
-        wepy.$Api.mywatch({PageSize: 10, PageIndex: 1}).then(res=>{
+        wepy.$Api.mywatch({PageSize: 1000, PageIndex: 1}).then(res=>{
             // console.log(res.data)
             if(res.data.IsSuccess){
                 this.mywatchList = res.data.Data

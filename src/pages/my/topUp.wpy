@@ -18,7 +18,6 @@
 
         <view class="my_list" @tap="router" data-url="/pages/my/topUpRecord">
             <view>
-                <!-- <image src="/images/home/course.png" mode="aspectFill" lazy-load/> -->
                 <text>创币使用记录</text>
             </view>
             <view>
@@ -43,9 +42,10 @@
         <view class="tip">
             <text>Tip：</text>
             <text>\n1.创币可用于购买箴创学院小程序内所有课程</text>
-            <text>\n2.创币为虚拟币，充值后创币不会过期，但无法提现和转赠他人</text>
+            <text>\n2.创币为虚拟货币，充值后不会过期，但是无法退还、转增、提现。</text>
             <text>\n3.1人民币=1创币</text>
             <text>\n4.小程序内仅限安卓用户充值，ios用户请联系箴创运营小二购买课程。</text>
+            <text>\n5.各个平台规则随时更新，请遵循最新的平台规则执行。</text>
         </view>
 
         <view class="sub_btn" @tap="upMethod">

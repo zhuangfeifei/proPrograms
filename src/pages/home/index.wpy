@@ -1,17 +1,31 @@
 <template>
     <view id="home">
         
-        <view class="swipers">
-            <swiper indicator-dots="{{indicatorDots}}" autoplay="{{autoplay}}" interval="{{interval}}" duration="{{duration}}" circular="{{true}}"
-                bindchange="BannerListSwiper">
-                <block wx:for="{{GetHomeBannerInfo.BannerList}}" wx:key="{{index}}">
-                    <swiper-item>
-                        <image @tap="detailsBanner" data-item="{{item}}" data-index="{{index}}" src="{{item.ImageUrl}}" class="slide-image" mode="aspectFill" lazy-load />
-                    </swiper-item>
-                </block>
-            </swiper>
-            <view class="indicator">
-                <view wx:for="{{GetHomeBannerInfo.BannerList}}" wx:key="{{index}}" class="{{indicatorActives == index ? 'indicatorActive' : ''}}"></view>
+        <view class="swiperList">
+            <view class="pure_top">
+                <image class="zcxylogo" src='https://zcxy.oss-cn-beijing.aliyuncs.com/xcx/zcxylogo.png' />
+                <view class="Shapes" @tap="routers">
+                    <image class="Shape" src='https://zcxy.oss-cn-beijing.aliyuncs.com/xcx/Shape.png' />
+                </view>
+                <view class="pure_right">
+                    <image wx:if="{{signinlately==0 && isTime}}" class="signin" @tap="router" data-url="/pages/integral/sign" src='https://zcxy.oss-cn-beijing.aliyuncs.com/xcx/signin.png' />
+                    <view>
+                        <image class="liwu" @tap="router" data-url="/pages/integral/sign" src='https://zcxy.oss-cn-beijing.aliyuncs.com/xcx/liwu2.png' />
+                    </view>
+                </view>
+            </view>
+            <view class="swipers">
+                <swiper indicator-dots="{{indicatorDots}}" autoplay="{{autoplay}}" interval="{{interval}}" duration="{{duration}}" circular="{{true}}"
+                    bindchange="BannerListSwiper" easing-function="easeInOutCubic">
+                    <block wx:for="{{GetHomeBannerInfo.BannerList}}" wx:key="{{index}}">
+                        <swiper-item>
+                            <image @tap="detailsBanner" data-item="{{item}}" data-index="{{index}}" src="{{item.ImageUrl}}" class="slide-image" mode="aspectFill" lazy-load />
+                        </swiper-item>
+                    </block>
+                </swiper>
+                <view class="indicator">
+                    <view wx:for="{{GetHomeBannerInfo.BannerList}}" wx:key="{{index}}" class="{{indicatorActives == index ? 'indicatorActive' : ''}}"></view>
+                </view>
             </view>
         </view>
 
@@ -24,15 +38,23 @@
                     </view>
                 </block>
             </view>
+            <h2 wx:if="{{livestreaming.length > 0}}">直播课程</h2>
+            <scroll-view wx:if="{{livestreaming.length > 0}}" class="scroll-view_H" scroll-x style="width: 100%; height:210rpx;">
+                <view class="scrollX" style="width: {{286*livestreaming.length-20}}rpx;">
+                    <block wx:for="{{livestreaming}}" wx:key="{{index}}">
+                        <view @tap="livedetails" data-item="{{item}}"><image src="{{item.Img}}" mode="aspectFill" lazy-load /></view>
+                    </block>
+                </view>
+            </scroll-view>
             <h2 wx:if="{{GetHomeBannerInfo.LatestCollegeList.length > 0}}">最新课程</h2>
             <scroll-view wx:if="{{GetHomeBannerInfo.LatestCollegeList.length > 0}}" class="scroll-view_H" scroll-x style="width: 100%; height:210rpx;">
-                <view class="scrollX" style="width: {{286*5-20}}rpx;">
+                <view class="scrollX" style="width: {{286*GetHomeBannerInfo.LatestCollegeList.length-20}}rpx;">
                     <block wx:for="{{GetHomeBannerInfo.LatestCollegeList}}" wx:key="{{index}}">
                         <view @tap="details" data-item="{{item}}"><image src="{{item.SmallImageUrl}}" mode="aspectFill" lazy-load /></view>
                     </block>
                 </view>
             </scroll-view>
-            <h2>年度大课</h2>
+            <view class="h2"><h2>年度大课</h2><text @tap="classification" data-item="{{courseClassList[1]}}">查看更多</text></view>
             <block wx:for="{{GetHomeBannerInfo.DaKaCollegeList}}" wx:key="{{index}}">
                 <view class="annualGivingList" @tap="details" data-item="{{item}}">
                     <image src="{{item.SmallImageUrl}}" mode="aspectFill" lazy-load />
@@ -50,13 +72,13 @@
         </view>
 
         <view class="fineCourse">
-            <h2>精品课程</h2>
+            <view class="h2"><h2>精品课程</h2><text @tap="classification" data-item="{{courseClassList[2]}}">查看更多</text></view>
             <view class="fineCourse_swiper">
-                <swiper indicator-dots="{{indicatorDots}}" autoplay="{{false}}" interval="{{interval}}" duration="{{duration}}" circular="{{false}}"
-                    bindchange="fineCourseSwiper">
+                <swiper indicator-dots="{{indicatorDots}}" autoplay="{{false}}" interval="{{interval}}" duration="{{duration}}" circular="{{true}}"
+                    bindchange="handleChange" previous-margin="30rpx" next-margin="30rpx" easing-function="easeInCubic">
                     <block wx:for="{{GetHomeBannerInfo.ExcellentCollegeList}}" wx:key="{{index}}">
                         <swiper-item>
-                            <image @tap="details" data-item="{{item}}" src="{{item.SmallImageUrl}}" class="slide-image" mode="aspectFill" lazy-load />
+                            <image @tap="details" class="slide-image {{currentIndex == index ? 'active': ''}}" data-item="{{item}}" src="{{item.SmallImageUrl}}" mode="aspectFill" lazy-load />
                         </swiper-item>
                     </block>
                 </swiper>
@@ -67,7 +89,7 @@
         </view>
 
         <view class="audioCourse">
-            <h2>音频课程</h2>
+            <view class="h2"><h2>音频课程</h2><text @tap="classification" data-item="{{courseClassList[3]}}">查看更多</text></view>
             <view class="audioCourse_list">
                 <block wx:for="{{GetHomeBannerInfo.YinPinCollegeList}}" wx:key="{{index}}">
                     <view class="audioCourseList" @tap="details" data-item="{{item}}">
@@ -79,24 +101,6 @@
             </view>
         </view>
 
-        <!-- <view class="Looking">
-            <h2>敬请期待</h2>
-            <block wx:for="{{GetHomeBannerInfo.ExcellentCollegeList}}" wx:key="{{index}}">
-                <view class="LookingList">
-                    <image src="{{item.SmallImageUrl}}" mode="aspectFill" lazy-load />
-                    <view class="LookingList_cont">
-                        <h3>{{item.Title}}</h3>
-                        <view class="LookingList_cont_title">
-                            <text wx:if="{{item.CollagePrice > 0}}">¥{{item.CollagePrice / 100}}</text>
-                            <image wx:else src="/images/home/free.png" />
-                            <text> 讲师 | {{item.TeacherName}}</text>
-                        </view>
-                    </view>
-                </view>
-            </block>
-        </view> -->
-
-
         <view wx:if="{{isBindPhone}}" @tap="isBindPhones" class="isBindPhone">
             <view class="isBindPhone_">
                 <image src="https://zcxy.oss-cn-beijing.aliyuncs.com/xcx/undraw_mail_2_tqip.png" mode="aspectFill" lazy-load/>
@@ -106,10 +110,10 @@
             </view>
         </view>
 
-        <view wx:if="{{isLogin}}" @tap="preventTouchMove" class="haibao">
+        <!-- <view wx:if="{{isLogin}}" @tap="preventTouchMove" class="haibaos">
             <view class="skip" @tap.stop="Haibao">跳过</view>
             <image src="https://zcxy.oss-cn-beijing.aliyuncs.com/xcx/guidance/step1.png?v1" lazy-load/>
-        </view>
+        </view> -->
 
 
         <view id="Popup" wx:if="{{isSign}}">
@@ -118,9 +122,9 @@
             <view>+{{Point}}积分</view>
         </view>
 
-        <view wx:if="{{isHaibao}}" class="haibao">
-            <view>
-                <image class="button" @tap="details" data-item='{{CollegeId}}' src="https://zcxy.oss-cn-beijing.aliyuncs.com/xcx/button.png" lazy-load/>
+        <view wx:if="{{isHaibao.IsShow}}" class="haibao">
+            <view style="background: url({{isHaibao.ImageUrl}}) no-repeat;background-size: 100% 100%;">
+                <image class="button" @tap="details" data-item='{{CollegeId}}' src="{{isHaibao.ImageUrl2}}" lazy-load/>
                 <image class="close" @tap="isHaibaoMethod" src="https://zcxy.oss-cn-beijing.aliyuncs.com/xcx/close.png" lazy-load/>
             </view>
         </view>
@@ -144,7 +148,9 @@ import 'wepy-async-function'
 export default class Home extends wepy.page {
     
     config = {
-        navigationBarTitleText: '箴创学院'
+        navigationBarTitleText: '箴创学院',
+        navigationBarBackgroundColor: '#FF8636',
+        navigationBarTextStyle: 'white'
     }
     
     components = {
@@ -156,7 +162,7 @@ export default class Home extends wepy.page {
             { title:'免费课程', imgUrl:'/images/home/mianfei.png', CollegeId: 1, CollegeIdIndex: 1 },
             { title:'年度大课', imgUrl:'/images/home/niandu.png', CollegeId: 2, CollegeIdIndex: 2 },
             { title:'课程列表', imgUrl:'/images/home/kechen.png', CollegeId: 3, CollegeIdIndex: 0 },
-            { title:'音频课程', imgUrl:'/images/home/yinpin.png', CollegeId: 7, CollegeIdIndex: 9 },
+            { title:'音频课程', imgUrl:'/images/home/yinpin.png', CollegeId: 7, CollegeIdIndex: 10 },
         ],
         GetHomeBannerInfo: [],
         indicatorDots: false,
@@ -173,7 +179,11 @@ export default class Home extends wepy.page {
         Point:0,
         isSign: false,
         screenHeight:'',
-        CollegeId: {CollegeId: 89}
+        CollegeId: {CollegeId: 89},
+        currentIndex: 0,
+        signinlately:1,
+        livestreaming:[],
+        isTime: true
     }
     
     computed = {
@@ -181,6 +191,16 @@ export default class Home extends wepy.page {
     }
     
     methods = {
+        router(e){
+            wx.navigateTo({url: e.currentTarget.dataset.url})
+        },
+        routers(){
+            wx.switchTab({url:`/pages/home/classification`})
+        },
+        handleChange(e) {
+            this.currentIndex = e.detail.current
+            this.$apply()
+        },
         q(){},
         preventTouchMove(){
             this.isLogin = false
@@ -216,23 +236,10 @@ export default class Home extends wepy.page {
         goLogin(){
             wx.navigateTo({url:'/pages/login/login'})
         },
+        livedetails(e){
+            wx.navigateTo({url:'/pages/home/weblive?webUrl='+e.currentTarget.dataset.item.Id})
+        },
         details(e){
-            // if(this.userinfo == ''){
-            //     wx.showModal({
-            //         // title: '请登录',
-            //         content: '请登录',
-            //         confirmText: '去登录',
-            //         success (res) {
-            //             if (res.confirm) {
-            //                 wx.navigateTo({url:'/pages/authorization/authorization'})
-            //             } else if (res.cancel) {
-            //             // console.log('用户点击取消')
-            //             }
-            //         }
-            //     })
-            //     return
-            // }
-            // console.log(e.currentTarget.dataset.item)
             wepy.$store.dispatch({
                 type: 'CollegeIds',
                 payload: e.currentTarget.dataset.item.CollegeId
@@ -266,7 +273,7 @@ export default class Home extends wepy.page {
             this.$apply()
         },
         classification(e){
-            wx.switchTab({url:`/pages/home/classification?id=${e.currentTarget.dataset.item.CollegeId}&index=${e.currentTarget.dataset.item.CollegeIdIndex}`})
+            console.log(`/pages/home/classification?id=${e.currentTarget.dataset.item.CollegeId}&index=${e.currentTarget.dataset.item.CollegeIdIndex}`)
             wepy.$store.dispatch({
                 type: 'CategoryIds',
                 payload: e.currentTarget.dataset.item.CollegeId
@@ -275,6 +282,7 @@ export default class Home extends wepy.page {
                 type: 'CategoryIdsIndex',
                 payload: e.currentTarget.dataset.item.CollegeIdIndex
             });
+            wx.switchTab({url:`/pages/home/classification?id=${e.currentTarget.dataset.item.CollegeId}&index=${e.currentTarget.dataset.item.CollegeIdIndex}`})
         },
     }
 
@@ -282,19 +290,30 @@ export default class Home extends wepy.page {
         if(option.CollegeId || option.q){
             if(option.q){
                 var scan_url = decodeURIComponent(option.q);
-                var CollegeId = scan_url.split('?')[1].split('=')[1]
-                if(CollegeId > 0){
+                // 如果有个人码
+                if(scan_url.split('?')[1].split('=')[0] == 'distributionCode'){
+                    var distributionCode = scan_url.split('?')[1].split('=')[1]
                     wepy.$store.dispatch({
-                        type: 'CollegeIds',
-                        payload: CollegeId
+                        type: 'distributionCodes',
+                        payload: distributionCode
                     });
-                    wx.navigateTo({url:`/pages/home/details`})
-                }else{
-                    wepy.$store.dispatch({
-                        type: 'ActivityCode',
-                        payload: CollegeId
-                    });
+                    wx.navigateTo({url:`/pages/authorization/authorization`})
+                }else{//如果有课程ID
+                    var CollegeId = scan_url.split('?')[1].split('=')[1]
+                    if(CollegeId > 0){
+                        wepy.$store.dispatch({
+                            type: 'CollegeIds',
+                            payload: CollegeId
+                        });
+                        wx.navigateTo({url:`/pages/home/details`})
+                    }else{
+                        wepy.$store.dispatch({
+                            type: 'ActivityCode',
+                            payload: CollegeId
+                        });
+                    }
                 }
+                
             }else{
                 wepy.$store.dispatch({
                     type: 'CollegeIds',
@@ -310,7 +329,6 @@ export default class Home extends wepy.page {
             });
         }
 
-        this.isHaibao = true
 
         wx.getStorage({
             key:'userinfo',
@@ -327,6 +345,22 @@ export default class Home extends wepy.page {
             }
         })
 
+
+        // 弹窗
+        wepy.$Api.popup().then(res=>{
+            // console.log(res.data)
+            if(res.data.IsSuccess){
+                this.isHaibao = res.data.Data
+                this.CollegeId.CollegeId = res.data.Data.CollegeId
+                this.$apply()
+            }else{
+
+            }
+            
+        },err=>{
+
+        })
+
         this.$apply()
 
         
@@ -338,6 +372,10 @@ export default class Home extends wepy.page {
             this.isSign = false
             this.$apply()
         },2000)
+        setTimeout(()=>{
+            this.isTime = false
+            this.$apply()
+        },5000)
         wx.getStorage({
             key:'userinfo',
             success:res=>{
@@ -347,8 +385,26 @@ export default class Home extends wepy.page {
                     this.isBindPhone = true
                     this.$apply()
                 }else if(res.data.Tag == 0){
-                    wx.navigateTo({url:`/pages/home/label`})
+                    // wx.navigateTo({url:`/pages/home/label`})
                 }
+                wepy.$Api.signinlately().then(resSign=>{
+                    // console.log(resSign.data)
+                    if(resSign.data.IsSuccess){
+                        this.signinlately = resSign.data.Data.IsSignIn
+                        // wepy.$store.dispatch({
+                        //     type: 'signinlately',
+                        //     payload: resSign.data.Data
+                        // });
+                        this.$apply()
+                    }else{
+                        wx.showToast({
+                            title: resSign.data.Message,
+                            icon: 'none',
+                            duration: 2000
+                        })
+                    }
+                    this.$apply()
+                }) 
                 this.$apply()
             },
             fail:res=>{
@@ -367,6 +423,21 @@ export default class Home extends wepy.page {
         },err=>{
 
         })
+        wepy.$Api.livestreaming().then(res=>{
+            // console.log(res.data)
+            if(res.data.IsSuccess){
+                this.livestreaming = res.data.Data
+                this.$apply()
+            }else{
+
+            }
+            
+        },err=>{
+
+        })
+
+
+        
 
         
     }
@@ -400,18 +471,7 @@ export default class Home extends wepy.page {
 
 
     watch = {
-        // userinfo(val,old){
-        //     console.log(val)
-        //     if(val!=null){
-        //         clearInterval(this.setIntervals)
-        //         if(this.$parent.globalData.userInfo.Mobile == ''){
-        //             this.isBindPhone = true
-        //             this.$apply()
-        //         }else if(this.$parent.globalData.userInfo.Tag == 0){
-        //             wx.navigateTo({url:`/pages/home/label`})
-        //         }
-        //     }
-        // }
+        
     }
 }
 </script>
@@ -419,40 +479,68 @@ export default class Home extends wepy.page {
 <style lang='less'>
 #home{
     width: 100%; height: 100%; background-color: #FFFFFF; position: relative;
-    // display: flex; justify-content: space-around; align-items: center;
 }
 
-.swipers{
-    width: 100%; height: 320rpx; position: relative;
-    swiper{
-        width: 100%; height: 100%;
-    }
-    .slide-image{
-        width: 100%; height: 100%; 
-    }
-    .indicator{
-        width: 100%; height: 10rpx; display: flex; justify-content: center;
-        position: absolute; bottom: 70rpx; left: 0;
-        view{
-            width: 10rpx; height: 10rpx; border-radius: 50%; opacity:0.37; background-color: #FFFFFF; margin-right: 10rpx;
+
+.swiperList{
+    width: 100%; height: 400rpx; position: relative;
+    .pure_top {
+        width: 100%; height: 216rpx; position: relative; z-index: 0; overflow: hidden; 
+        .zcxylogo{width: 128rpx; height: 40rpx; position: absolute; top: 40rpx; left: 30rpx; z-index: 10;}
+        .pure_right{
+            position: absolute; right: 34rpx; top: 0; z-index: 10;
+            .signin{width: 122rpx; height: 50rpx; position: absolute; top: 0; right: 4rpx; z-index: 10;}
+            view{
+                display: flex; align-items: center; justify-content: flex-end; margin-top: 40rpx;
+                .liwu{width: 40rpx; height: 40rpx;}
+            }
         }
-        .indicatorActive{
-            width: 46rpx; height: 10rpx; border-radius: 5px;
+        .Shapes{
+            width: 462rpx; height: 40rpx; background: rgba(255,255,255,0.28); border-radius: 20rpx;
+            position: absolute; top: 40rpx; left: 188rpx; z-index: 10; 
+            .Shape{width: 20rpx; height: 20rpx; margin-right: 14rpx; margin-top: 10rpx; float: right;}
+        }
+    }
+    .pure_top::after {
+        content: ' '; width: 100%; height: 216rpx;
+        position: absolute; left: 0; top: 0; z-index: 0;
+        border-radius: 0 0 5% 5%; background: #FF8636;
+    }
+
+    .swipers{
+        width: calc(100% - 60rpx); height: 300rpx; position: absolute; top: 100rpx; left: 30rpx;
+        swiper{
+            width: 100%; height: 100%;
+        }
+        .slide-image{
+            width: 100%; height: 100%; border-radius: 12rpx;
+        }
+        .indicator{
+            width: 100%; height: 10rpx; display: flex; justify-content: center;
+            position: absolute; bottom: 30rpx; left: 0;
+            view{
+                width: 10rpx; height: 10rpx; border-radius: 50%; opacity:0.37; background-color: #FFFFFF; margin-right: 10rpx;
+            }
+            .indicatorActive{
+                width: 46rpx; height: 10rpx; border-radius: 5px;
+            }
         }
     }
 }
+
 
 
 // 年度大课
 .annualGiving{
-    width: 100%; box-sizing: border-box; padding: 0 30rpx; padding-top: 174rpx;
+    width: 100%; box-sizing: border-box; padding: 0 30rpx; padding-top: 40rpx;
     .courseClass{
-        width: 690rpx; height: 176rpx; border-radius: 20rpx; box-shadow:0px 0px 40rpx 0px rgba(0,0,0,0.07);
-        background-color: #FFFFFF; position: absolute; top: 278rpx; left: 30rpx; z-index: 1000!important;
+        width: 690rpx; height: 180rpx; 
+        margin-bottom: 40rpx;
         display: flex; justify-content: space-around; box-sizing: border-box; align-items: center;
         .courseClassLists{
-            width: 106rpx; font-size: 24rpx; color: #515356; text-align: center;
-            image{width: 60rpx; height: 60rpx;}
+            width: 160rpx; height: 100%; font-size: 24rpx; color: #515356; text-align: center; border-radius: 20rpx;
+            box-shadow:0px 0px 40px 0px rgba(0,0,0,0.1); padding-top: 30rpx; box-sizing: border-box;
+            image{width: 86rpx; height: 72rpx; margin-bottom: 10rpx;}
         }
     }
 
@@ -494,18 +582,23 @@ export default class Home extends wepy.page {
 }
 
 
+.h2{width: 100%; display: flex; justify-content: space-between; box-sizing: border-box; text{font-size: 28rpx; color: rgba(0,0,0,0.5);}}
+
+
 // 精品课程
 .fineCourse{
     width: 100%; box-sizing: border-box; margin-top: 40rpx; position: relative;
     h2{ color: #333333; font-size: 36rpx;font-family:PingFangSC-Semibold; font-weight:600; margin-left: 30rpx; }
+    .h2{padding-right: 30rpx;}
     .fineCourse_swiper{
         width: 100%; text-align: center; margin-top: 40rpx;
         swiper{
             width: 100%;
         }
         .slide-image{
-            width: 690rpx; height: 100%; border-radius: 10rpx;
+            width: 670rpx; height: 100%; border-radius: 10rpx;
             // box-shadow:0px 0rpx 40rpx 0px rgba(0,0,0,0.3);
+            .active{ height: 90%;}
         }
         .indicator{
             width: 100%; height: 10rpx; display: flex; justify-content: center;
@@ -599,12 +692,20 @@ export default class Home extends wepy.page {
     width: 100%; height: 100%; background:rgba(0,0,0,0.6); box-sizing: border-box;
     position: fixed; top: 0; left: 0; z-index: 10003; display: flex; justify-content: center; align-items: center;
     view{
-        width: 74%; height: 45%;
-        background: url('https://zcxy.oss-cn-beijing.aliyuncs.com/xcx/yanjie.png') no-repeat; background-size: 100% 100%;
+        width: 533rpx; height: 45%;
         position: relative;
         .button{width: 65%; height: 100rpx; position: absolute; bottom: 30rpx; left: 17.5%;}
         .close{width: 51rpx; height: 114rpx; position: absolute; bottom: -114rpx; left: calc(50% - 25.5rpx);}
     }
+    .skip{
+        position: absolute; top: 1rem; left: 1rem; color: white;
+    }
+}
+
+.haibaos{
+    width: 100%; height: 100%; box-sizing: border-box;
+    position: fixed; top: 0; left: 0; z-index: 10003; display: flex; justify-content: center; align-items: center;
+    image{width: 100%; height: 100%;}
     .skip{
         position: absolute; top: 1rem; left: 1rem; color: white;
     }
@@ -629,10 +730,4 @@ export default class Home extends wepy.page {
 
 
 
-
-// .haibao{
-//     width: 100%; height: 100%; background:rgba(0,0,0,0.31); box-sizing: border-box;
-//     position: fixed; top: 0; left: 0; z-index: 10003; display: flex; justify-content: center; align-items: center;
-//     image{width: 88%; height: 95%;}
-// }
 </style>

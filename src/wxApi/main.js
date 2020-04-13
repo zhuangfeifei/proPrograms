@@ -1,6 +1,6 @@
 import wepy from 'wepy'
 const Api = require('./api')
-const API_BASE_URL = false ? 'http://192.168.1.173:8002/api' : 'https://www.proseer.cn/zcxypc/api'
+const API_BASE_URL = false ? 'http://192.168.1.173:8002/api' : 'https://www.proseer.cn/zcxypcstage/api'
 const request = (url, method, token = '', data = {}, headers = 'application/x-www-form-urlencoded') => {
   let _url = API_BASE_URL + url
   return new Promise((resolve, reject) => {
@@ -40,27 +40,6 @@ const request = (url, method, token = '', data = {}, headers = 'application/x-ww
           resolve(request)
         }else{
           
-        //   wepy.showModal({
-        //     title: '温馨提示',
-        //     content: 'request.data.message',
-        //     success(res) {
-        //       if (res.confirm) {
-        //         // console.log('用户点击确定')
-        //         // if(request.data.code == 9999){
-        //         //   wepy.navigateTo({
-        //         //     url: '/pages/my/setting/phone'
-        //         //   })
-        //         // }
-        //       } else if (res.cancel) {
-        //         // console.log('用户点击取消')
-        //         if(request.data.code == 412||request.data.code == 413){
-        //           wx.switchTab({
-        //             url: '/pages/index/index'
-        //           });
-        //         }
-        //       }
-        //     }
-        //   })
         }
       },
       fail(error) {

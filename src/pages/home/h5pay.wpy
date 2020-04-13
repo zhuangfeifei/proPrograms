@@ -1,0 +1,154 @@
+<template>
+    <view id="topUp">
+
+    </view>
+</template>
+
+<script>
+import wepy from 'wepy'
+import { connect } from 'wepy-redux'
+import 'wepy-async-function'
+
+@connect({
+    
+})
+    
+export default class TopUp extends wepy.page {
+    
+    config = {
+        navigationBarTitleText: '充值'
+    }
+    
+    components = {
+    
+    }
+    
+    data = {
+        amountList:[8,68,118,288,388,588], amountIndex: 0,
+        userinfo:''
+    }
+    
+    computed = {
+    
+    }
+    
+    methods = {
+        
+    }
+    
+    onShow() {
+        
+    }
+    onLoad(option) {
+        // console.log(option)
+        var datas = JSON.parse(decodeURIComponent(option.payParam));
+        wx.requestPayment({
+            timeStamp: datas[3],
+            nonceStr: datas[1],
+            package: `prepay_id=${datas[0]}`,
+            signType: 'MD5',
+            paySign: datas[2],
+            success:res=> { 
+                // console.log(res)
+                wx.navigateBack()
+            },
+            fail:res=>{
+                wx.navigateBack()
+            }
+        })
+        this.$apply()
+    }
+
+    onShareAppMessage(res) {
+        if (res.from === 'button') {
+            // 来自页面内转发按钮
+            // console.log(res.target)
+        }
+        return {
+            title: '箴创学院',
+            path: '/pages/home/index'
+        }
+    }
+}
+</script>
+
+<style lang='less'>
+#topUp{
+    width: 100%; min-height: 100%; box-sizing: border-box; padding-top: 10rpx; background-color: #F5F3F2;
+}
+
+
+.my_nav{
+    width: 100%; height: 180rpx; background-color: white; box-sizing: border-box; padding-left: 30rpx; 
+    display: flex; justify-content: space-between; align-items: center; padding-right: 26rpx;
+    .portrait{
+        height: 90rpx;display: flex; align-items: center;
+        image{ width: 80rpx; height: 90rpx; }
+        .my_name{
+            margin-left: 34rpx; color: #999999;
+            h3{font-size: 34rpx; color: #333333;font-family:PingFangSC-Medium; font-weight:500;}
+        }
+    }
+    .my_balance{
+        text-align: right; height: 90rpx;
+        view{
+            image{width: 42rpx; height: 48rpx; margin-right: 22rpx;}
+            text{font-size: 40rpx; color: #333333;font-family:PingFangSC-Semibold;font-weight:600;}
+        }
+    }
+}
+
+
+.my_list{
+    width: 100%; height: 106rpx; display: flex; justify-content: space-between; align-items: center; background-color: white;
+    box-sizing: border-box; padding:0 30rpx; border-bottom: 1px solid #EEEEEE; margin-top: 10rpx;
+    view:nth-child(1){
+        display: flex; align-items: center;
+        image{width: 48rpx; height: 48rpx; margin: 0 38rpx;}
+    }
+    view:nth-child(2){
+        display: flex; align-items: center; color: #999999;
+        image{width: 16rpx; height: 26rpx; margin-left: 22rpx;}
+    }
+}
+
+
+.topUp_amount{
+    width: 100%; padding: 30rpx; box-sizing: border-box;
+    background-color: white; margin-top: 10rpx;
+    h2{ color: #333333; font-size: 36rpx;font-family:PingFangSC-Semibold; font-weight:600; }
+    .amountList{
+        width: 100%; display: flex; justify-content: space-between; flex-wrap: wrap; box-sizing: border-box; text-align: center;
+        .amountList_cont{
+            width: 212rpx; height: 120rpx; background-color: #F5F5F5; border-radius: 4rpx; text-align: center; position: relative;
+            margin-top: 26rpx;  color: #939393; font-size: 24rpx;
+            h5{font-size: 36rpx; color: #000000;}
+            .amountActive{color: #FC6619;}
+            .amounts{
+                width: 100%; height: 100%; display: flex; justify-content: center; align-items: center;
+                 position: absolute; top: 0; left: 0; z-index: 10; 
+                 text{font-size: 28rpx;}
+            }
+            image{width: 100%; height: 100%; position: absolute; top: 0; left: 0; z-index: 1;}
+        }
+    }
+}
+
+
+.tip{
+    width: 690rpx; margin: 30rpx auto; font-size: 24rpx;
+}
+
+
+.sub_btn{
+    width: 690rpx; height: 94rpx; background:linear-gradient(270deg,rgba(255,94,146,1) 0%,rgba(255,135,52,1) 100%);
+    text-align: center; line-height: 94rpx; border-radius: 47rpx; color: #FFFFFF; font-size: 36rpx;
+    position: absolute; bottom: 40rpx; left: 30rpx;z-index: 100;
+    .form{
+        width: 100%; height: 100%; position: absolute; top: 0; left: 0; opacity: 0;
+    }
+}
+
+
+
+</style>

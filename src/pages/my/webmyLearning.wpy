@@ -1,0 +1,58 @@
+<template>
+    <view>
+        <web-view src="https://www.proseer.cn/distribution/index.html?userinfo={{userinfos}}">
+        </web-view>
+        
+    </view>
+</template>
+
+<script>
+import wepy from 'wepy'
+import { connect } from 'wepy-redux'
+import 'wepy-async-function'
+
+@connect({
+    userinfo(state) {
+        return state.counter.userinfo;
+    },
+})
+    
+export default class Web extends wepy.page {
+    
+    config = {
+        navigationBarTitleText: '箴创合伙人•千人计划'
+    }
+    
+    components = {
+    
+    }
+    
+    data = {
+        webUrl:'', userinfos:''
+    }
+    
+    computed = {
+    
+    }
+    
+    methods = {
+    
+    }
+    
+    onLoad(option) {
+        console.log(option)
+        this.webUrl = option.webUrl
+        this.userinfos = JSON.stringify(this.userinfo)
+        this.$apply()
+    }
+
+    onShareAppMessage(options) {
+        console.log(options.webViewUrl)
+
+    }
+}
+</script>
+
+<style lang='less'>
+
+</style>

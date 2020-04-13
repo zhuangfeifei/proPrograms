@@ -11,7 +11,7 @@
 
         <view class="ordinary" wx:if="{{tabIndex==0}}">
             <block wx:for="{{myOrderList}}" wx:key="{{index}}">
-                <view class="groupList" @tap="details" data-item="{{item}}">
+                <view class="groupList" data-item="{{item}}">
                     <view class="groupTime">
                         <view class="groupTimes">
                             <text>{{item.DateTime2}}</text>
@@ -34,7 +34,8 @@
                         </view>
                     </view>
                     <view class="price">
-                        <view class="learning" wx:if="{{item.OrderStatus==(2||3)}}">去学习</view>
+                        <view class="learning" wx:if="{{item.OrderStatus==2||item.OrderStatus==3}}" @tap="details" data-item="{{item}}">去学习</view>
+                        <view wx:else></view>
                         <view class="prices">
                             <text>实际支付 <text class="priceRed">{{item.CB/100}}</text></text>
                             <image class="cb" src="/images/home/cb.png" />
@@ -119,6 +120,16 @@ export default class MyOrder extends wepy.page {
             this.tabIndex = parseInt(e.currentTarget.dataset.index)
             this.PageIndex = 1
             this.myOrderListMethods()
+            if (wx.pageScrollTo) {
+                wx.pageScrollTo({
+                    scrollTop: 0
+                })
+            } else {
+                wx.showModal({
+                    title: '提示',
+                    content: '当前微信版本过低，无法使用该功能，请升级到最新微信版本后重试。'
+                })
+            }
             this.$apply()
         },
         details(e){
@@ -142,8 +153,12 @@ export default class MyOrder extends wepy.page {
                 type: 'CollegeIds',
                 payload: e.currentTarget.dataset.item.GoodsId
             });
-            if(e.currentTarget.dataset.item.ExtendInfo.Status==3){
+            if(this.tabIndex == 0){
                 wx.navigateTo({url:`/pages/home/details`})
+            }else{
+                if(e.currentTarget.dataset.item.ExtendInfo.Status==3){
+                    wx.navigateTo({url:`/pages/home/details`})
+                }
             }
         },
     }
@@ -223,8 +238,8 @@ export default class MyOrder extends wepy.page {
 
 
 .details_tab{
-    width: 100%; height: 84rpx; display: flex; justify-content: space-around; align-items: center;
-    box-sizing: border-box; padding: 0 50rpx; background-color: white;
+    width: 100%; height: 84rpx; display: flex; justify-content: space-around; align-items: center; z-index: 10000;
+    box-sizing: border-box; padding: 0 50rpx; background-color: white; position: fixed; top: 0; left: 0;
     .tabList{
         line-height: 74rpx; position: relative;
         view{
@@ -236,6 +251,10 @@ export default class MyOrder extends wepy.page {
     }
 }
 
+
+.ordinary{
+    padding-top: 84rpx;
+}
 
 
 .groupList{

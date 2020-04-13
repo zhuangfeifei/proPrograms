@@ -32,7 +32,9 @@ import 'wepy-async-function'
 const Api = require('../../wxApi/api')
 
 @connect({
-    
+    distributionCode(state) {
+        return state.counter.distributionCode;
+    },
 })
     
 export default class Authorization extends wepy.page {
@@ -115,7 +117,7 @@ export default class Authorization extends wepy.page {
                                                             }
                                                             this.$apply()
                                                         })
-                                                        if(res.data.Data.Mobile == ''){
+                                                        if(res.data.Data.Mobile == '' || this.distributionCode!=''){
                                                             wx.navigateTo({url:`/pages/login/login`})
                                                         }else if(res.data.Data.Tag == 0){
                                                             wx.navigateTo({url:`/pages/home/label`})
@@ -150,8 +152,8 @@ export default class Authorization extends wepy.page {
         }
     }
     
-    onLoad() {
-    
+    onLoad(option) {
+        
     }
 
     onShareAppMessage(res) {

@@ -77,7 +77,7 @@ export default class Legistered extends wepy.page {
             this.registeredList.pwd = e.detail.value
         },
         registeredMethod(){
-            console.log(this.registeredList)
+            // console.log(this.registeredList)
             wx.navigateTo({url:'/pages/login/successfully'})
         },
     }

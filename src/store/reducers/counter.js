@@ -6,11 +6,13 @@ const defaultState = {
   userinfo:'',
   CollegeId:'',
   CategoryId:'',
+  distributionCode:'',
   CategoryIdIndex:'',
   collegedetail:'',
   coupon:'',
   InviteUserId:'',
   ActivityCode:0,
+  signinlately:'',
 }
 
 export default handleActions({
@@ -19,6 +21,9 @@ export default handleActions({
   },
   CollegeIds(state, action){
     return { ...state, CollegeId: action.payload }
+  },
+  distributionCodes(state, action){
+    return { ...state, distributionCode: action.payload }
   },
   CategoryIds(state, action){
     return { ...state, CategoryId: action.payload }
@@ -37,5 +42,8 @@ export default handleActions({
   },
   ActivityCode(state, action){
     return { ...state, ActivityCode: action.payload }
+  },
+  signinlately(state, action){
+    return { ...state, signinlately: action.payload }
   },
 }, defaultState)

@@ -92,71 +92,99 @@ export default class Pay extends wepy.page {
             wx.showLoading({
                 title: '支付中',
             })
-            wepy.$Api.getcache().then(res=>{
-                // console.log(res.data)
-                if(res.data.IsSuccess){
-                    if(res.data.Data.Balance/100 >= this.collegedetail.SalePrice/100){
-                        let list = {
-                            GoodsId: this.collegedetail.Id,
-                            PayType:3,
-                            GoodsType:1,
-                            openId: this.userinfo.OpenId,
-                            UserCouponId: this.coupon.Id
-                        }
-                        wepy.$Api.createorder(list).then(result=>{ // 创建订单
-                            // prepay_id, nonce_str, paySign, timeStamp
-                            // console.log(result.data)
-                            wx.hideLoading()
-                            if(result.data.Code === '2' || result.data.Code === '12'){
-                                wx.showToast({
-                                    title: '购买成功',
-                                    icon: 'success',
-                                    duration: 2000
-                                })
-                                if(result.data.Dictionary.Point.Result){
-                                    this.Point= result.data.Dictionary.Point.Point
-                                    setTimeout(()=>{
-                                        this.isSign = true
-                                        this.$apply()
-                                    },2000)
-                                    setTimeout(()=>{
-                                        this.isSign = false
-                                        wx.navigateBack()
-                                        this.$apply()
-                                    },4000)
+            // if(this.collegedetail.Id){
+                wepy.$Api.getcache().then(res=>{
+                    // console.log(res.data)
+                    if(res.data.IsSuccess){
+                        if(res.data.Data.Balance/100 >= (this.collegedetail.SalePrice/100 - (this.coupon?this.coupon.Price/100:0))){
+                            let list = {
+                                GoodsId: this.collegedetail.Id ? this.collegedetail.Id : this.collegedetail.ClassId,
+                                PayType:3,
+                                GoodsType: this.collegedetail.Id ? 1 : 11,
+                                openId: this.userinfo.OpenId,
+                                UserCouponId: this.coupon.Id
+                            }
+                            wepy.$Api.createorder(list).then(result=>{ // 创建订单
+                                // prepay_id, nonce_str, paySign, timeStamp
+                                // console.log(result.data)
+                                wx.hideLoading()
+                                if(result.data.Code === '2' || result.data.Code === '12'){
+                                    wx.showToast({
+                                        title: '购买成功',
+                                        icon: 'success',
+                                        duration: 2000
+                                    })
+                                    if(result.data.Dictionary.Point.Result){
+                                        this.Point= result.data.Dictionary.Point.Point
+                                        setTimeout(()=>{
+                                            this.isSign = true
+                                            this.$apply()
+                                        },2000)
+                                        setTimeout(()=>{
+                                            this.isSign = false
+                                            wx.navigateBack()
+                                            this.$apply()
+                                        },4000)
+                                    }else{
+                                        setTimeout(()=>{
+                                            wx.navigateBack()
+                                        },2000)
+                                    }
+                                    this.$apply()
                                 }else{
-                                    setTimeout(()=>{
-                                        wx.navigateBack()
-                                    },2000)
+                                    wx.showToast({
+                                        title: '对不起，箴箴不在状态，请重新购买！',
+                                        // title: result.data.Message,
+                                        icon: 'none',
+                                        duration: 2000
+                                    })
                                 }
                                 this.$apply()
-                            }else{
-                                wx.showToast({
-                                    title: '对不起，箴箴不在状态，请重新购买！',
-                                    // title: result.data.Message,
-                                    icon: 'none',
-                                    duration: 2000
-                                })
-                            }
-                            this.$apply()
-                        })
-                    }else{
-                        wx.showModal({
-                            title: '温馨提示',
-                            content: '余额不足',
-                            confirmText: '去充值',
-                            success (res) {
-                                if (res.confirm) {
-                                   wx.navigateTo({url:'/pages/my/topUp'})
-                                } else if (res.cancel) {
-                                // console.log('用户点击取消')
+                            })
+                        }else{
+                            wx.showModal({
+                                title: '温馨提示',
+                                content: '余额不足',
+                                confirmText: '去充值',
+                                success (res) {
+                                    if (res.confirm) {
+                                    wx.navigateTo({url:'/pages/my/topUp'})
+                                    } else if (res.cancel) {
+                                    // console.log('用户点击取消')
+                                    }
                                 }
-                            }
-                        })
+                            })
+                        }
                     }
-                }
-                this.$apply()
-            })
+                    this.$apply()
+                })
+            // }else{
+            //     let listObject = {Goods: [{CartId: '', GoodsType: 11, GoodsId: this.collegedetail.ClassId}], UserCouponId: this.coupon ? this.coupon.Id : ''}
+            //     // console.log(listObject)
+            //     wepy.$Api.creategrouporder(listObject).then(res=>{ // 购物车下单
+            //         // console.log(res.data)
+            //         wx.hideLoading()
+            //         if(res.data.IsSuccess){
+            //             wx.showToast({
+            //                 title: '购买成功',
+            //                 icon: 'success',
+            //                 duration: 2000
+            //             })
+            //             setTimeout(()=>{
+            //                 wx.navigateBack()
+            //                 this.$apply()
+            //             },3000)
+            //             this.$apply()
+            //         }else{
+            //             wx.showToast({
+            //                 title: res.data.Message,
+            //                 icon: 'none',
+            //                 duration: 2000
+            //             })
+            //         }
+            //         this.$apply()
+            //     })
+            // }
         },
     }
     

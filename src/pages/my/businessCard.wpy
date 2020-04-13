@@ -33,10 +33,6 @@
         </view>
 
         <view class="setup_function">
-            <!-- <view class="setup_list">
-                <view><text>昵称</text></view>
-                <view>尹磊</view>
-            </view> -->
             <view class="setup_list">
                 <view><text>姓名</text></view>
                 <view><input type="text" bindinput="bindName" value="{{list.IdName}}" placeholder="姓名" placeholder-style="color:#999999"/></view>
@@ -140,7 +136,6 @@ export default class BusinessCard extends wepy.page {
             this.$apply()
         },
         bindEmail(e){
-            console.log(e.detail.value)
             this.list.Email = e.detail.value
             this.canvas()
             this.$apply()
@@ -200,17 +195,6 @@ export default class BusinessCard extends wepy.page {
                     // if (res.errMsg === "saveImageToPhotosAlbum:fail auth deny") {
                         this.isXaingce = true
                         this.$apply()
-                        // console.log("打开设置窗口");
-                        // wx.openSetting({
-                        //     success(settingdata) {
-                        //         console.log(settingdata)
-                        //         if (settingdata.authSetting["scope.writePhotosAlbum"]) {
-                        //             console.log("获取权限成功，再次点击图片保存到相册")
-                        //         } else {
-                        //             console.log("获取权限失败")
-                        //         }
-                        //     }
-                        // })
                     // }
                 }
             })

@@ -1,0 +1,404 @@
+<template>
+    <view id="cart">
+
+        <view class="course" wx:for="{{cartList}}" wx:key="{{index}}" @tap="pay">
+            <image class="course_img" src="{{item.SmallImageUrl}}" />
+            <view class="courseCont">
+                <view> 
+                    <view class="clamps">{{item.Title}}</view> 
+                    <image @tap="deletes" data-item="{{item}}" data-index="{{index}}" class="status" src="https://zcxy.oss-cn-beijing.aliyuncs.com/xcx/%E5%9E%83%E5%9C%BE%E6%A1%B6%402x.png" />
+                </view>
+                <view>
+                    <text>讲师：{{item.TeacherName}}</text>
+                    <view><image class="cb" src="/images/home/cb.png" />{{item.SalePrice/100}}</view>
+                </view>
+            </view>
+        </view>
+        <view wx:if="{{cartList.length == 0}}" class="noList">
+            暂无数据
+        </view>
+
+        <view wx:if="{{cartList.length > 0}}" class="settlement">
+            <view class="my_list" @tap="router" data-url="{{'/pages/my/myCoupons?Price='+collegedetail.SalePrice/100}}">
+                <view>
+                    <image src="/images/home/youhuiquan2.png" mode="aspectFill" lazy-load/>
+                    <text>优惠券</text>
+                    <image class="more" src="/images/home/Chevron.png" mode="aspectFill" lazy-load/>
+                </view>
+                <view wx:if="{{coupon}}">
+                    -{{coupon.Price/100}}
+                </view>
+            </view>
+            <view class="my_list feedback" @tap="router" data-url="/pages/my/feedback">
+                <view>
+                    <text>实际支付</text>
+                </view>
+                <view>
+                    <image src="/images/home/cb.png" mode="aspectFill" lazy-load/>
+                    <text>{{price/100 - (coupon?coupon.Price/100:0)}}</text>
+                </view>
+            </view>
+
+            <view wx:if="{{isPaying}}" class="pays">
+                <div class="stage">
+                    <div class="dot-flashing"></div>
+                </div>
+            </view>
+            <view wx:else class="pays" @tap="payMethod">立即结算</view>
+        </view>
+
+
+
+        <view wx:if="{{isPaying}}" class="statusPop" @tap="close">
+            <view class="pop">
+                <view>创币余额：{{userinfo.Balance/100}}</view>
+                <view>本次支付：{{price/100 - (coupon?coupon.Price/100:0)}}</view>
+                <view wx:if="{{isStatus}}" class="Balance">余额不足</view>
+                <view wx:if="{{isStatus}}" class="btnPay" @tap="topUp">创币充值</view>
+                <view wx:else class="btnPay" @tap="pay">立即支付</view>
+            </view>
+        </view>
+
+        <view wx:if="{{isSuccess}}" class="statusPop">
+            <view class="pops">
+                <image src="https://zcxy.oss-cn-beijing.aliyuncs.com/xcx/successBig.png" />
+                <view>购买成功，您可以在“我的课程”里找到</view>
+                <view class="btnPay" @tap="go">确认</view>
+            </view>
+        </view>
+
+    </view>
+</template>
+
+<script>
+import wepy from 'wepy'
+import { connect } from 'wepy-redux'
+import 'wepy-async-function'
+
+@connect({
+    userinfo(state) {
+        return state.counter.userinfo;
+    },
+    coupon(state) {
+        return state.counter.coupon;
+    },
+})
+    
+export default class Cart extends wepy.page {
+    
+    config = {
+        navigationBarTitleText: '购物车'
+    }
+    
+    components = {
+    
+    }
+    
+    data = {
+        isStatus: false, cartList: [], price: 0, isPaying: false,
+        isSuccess: false
+    }
+    
+    computed = {
+    
+    }
+    
+    methods = {
+        router(e){
+            wx.navigateTo({url: e.currentTarget.dataset.url})
+        },
+        topUp(){
+            wx.navigateTo({url:'/pages/my/topUp'})
+        },
+        go(){
+            this.isSuccess = false
+            wx.navigateTo({url:'/pages/my/myCourse'})
+            this.$apply()
+        },
+        payMethod(){
+            this.isPaying = true
+            if(this.userinfo.Balance > (this.price - (this.coupon?this.coupon.Price:0))){
+                this.isStatus = false
+            }else{
+                this.isStatus = true
+            }
+        },
+        close(){
+            this.isPaying = false
+        },
+        deletes(e){
+            wepy.$Api.cartdel({GoodsId: e.currentTarget.dataset.item.GoodsId, GoodsType: e.currentTarget.dataset.item.GoodsType}).then(res=>{ // 删除购物车
+                // console.log(res.data)
+                if(res.data.IsSuccess){
+                    this.price = this.price - this.cartList[e.currentTarget.dataset.index].SalePrice
+                    this.cartList.splice(e.currentTarget.dataset.index,1)
+                    this.$apply()
+                }else{
+                    wx.showToast({
+                        title: res.data.Message,
+                        icon: 'none',
+                        duration: 2000
+                    })
+                }
+                this.$apply()
+            })
+        },
+        pay(){
+            wx.showLoading({
+                title: '支付中',
+            })
+            let listObject = {Goods: [], UserCouponId: this.coupon ? this.coupon.Id : ''}
+            this.cartList.forEach(val => {
+                let obj = {CartId: val.Id, GoodsType: val.GoodsType, GoodsId: val.GoodsId}
+                listObject.Goods.push(obj)
+            });
+            // console.log(listObject)
+            wepy.$Api.creategrouporder(listObject).then(res=>{ // 购物车下单
+                // console.log(res.data)
+                wx.hideLoading()
+                this.isPaying = false
+                if(res.data.IsSuccess){
+                    this.isSuccess = true
+                    this.onShow()
+                    this.$apply()
+                }else{
+                    wx.showToast({
+                        title: res.data.Message,
+                        icon: 'none',
+                        duration: 2000
+                    })
+                }
+                this.$apply()
+            })
+        },
+    }
+    
+    onLoad() {
+    
+    }
+    onShow() {
+        if(this.userinfo){
+            wx.showLoading({
+                title: '加载中',
+            })
+            wepy.$Api.cartget().then(res=>{ // 获取购物车
+                // console.log(res.data)
+                wx.hideLoading()
+                if(res.data.IsSuccess){
+                    this.cartList = res.data.Data.ShoppingCartItems
+                    let allPrice = 0
+                    this.cartList.forEach(val => {
+                        console.log(val)
+                        allPrice = allPrice + val.SalePrice
+                        this.price = allPrice
+                        this.$apply()
+                    });
+                    this.$apply()
+                }else{
+                    wx.showToast({
+                        title: res.data.Message,
+                        icon: 'none',
+                        duration: 2000
+                    })
+                }
+                this.$apply()
+            })
+        }
+    }
+}
+</script>
+
+<style lang='less'>
+#cart{
+    width: 100%; min-height: 100%; box-sizing: border-box;font-size: 28rpx; background-color: #F5F3F2; padding-top: 10rpx;
+}
+
+.clamp{
+    display: -webkit-box;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    word-wrap: break-word;
+    white-space: normal !important;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+}
+.btnBack{
+    background:linear-gradient(270deg,rgba(255,94,146,1) 0%,rgba(255,135,52,1) 100%);
+    text-align: center; color: #FFFFFF; font-size: 28rpx;
+    height:72rpx; line-height: 72rpx; 
+}
+
+
+.noList{
+    width: 100%; text-align: center; padding-top: 100rpx;
+}
+
+
+.course{
+    width: 100%; height: 180rpx; display: flex; margin-bottom: 10rpx; box-sizing: border-box; padding: 30rpx; 
+    background-color: #FFFFFF;
+    .course_img{
+        width: 200rpx; height: 100%; margin-right: 34rpx; border-radius: 10rpx;
+    }
+    .courseCont{
+        width: calc(100% - 234rpx); height: 100%; display: flex; flex-flow: column; justify-content: space-between;
+        padding: 6rpx 0; box-sizing: border-box;
+        .status{width: 32rpx; height: 32rpx; margin-left: 20rpx;}
+        .cb{width: 40rpx; height: 42rpx; margin-right: 10rpx;}
+        view{display: flex; justify-content: space-between; align-items: center;}
+        view:nth-child(1){
+            color:#333333; font-size: 34rpx; font-weight: 600; 
+            .clamps{
+                width: calc(100% - 40rpx); height: 35rpx; line-height: 35rpx; .clamp;
+            }
+        }
+        view:nth-child(2) text{color:#515356; font-size: 28rpx;}
+        view:nth-child(2) view{color:#333333; font-size: 36rpx; display: flex; align-items: center; font-weight: 600;}
+    }
+}
+
+
+
+.settlement{
+    width: 100%; height: 280rpx; position: fixed; bottom: 0; left: 0; 
+    background-color: #FFFFFF; box-sizing: border-box; padding: 0 30rpx; 
+    padding-top: 20rpx;
+}
+
+
+
+
+.my_list{
+    width: 100%; height: 80rpx; display: flex; justify-content: space-between; align-items: center; background-color: white;
+    box-sizing: border-box; 
+    // border-bottom: 1px solid #EEEEEE;
+    view:nth-child(1){
+        display: flex; align-items: center;
+        image{width: 40rpx; height: 40rpx; margin-right: 38rpx;}
+        .more{width: 16rpx; height: 26rpx; margin-left: 30rpx; position: relative; top: 5rpx;}
+    }
+    view:nth-child(2){
+        display: flex; align-items: center; color: #F74D4D; font-size: 36rpx;
+    }
+}
+.feedback{
+    view:nth-child(1){
+        font-size: 36rpx; color: #333333; font-weight: 600;
+    }
+    view:nth-child(2){
+        font-weight: 600;
+        image{width: 40rpx; height: 44rpx; margin-right: 15rpx;}
+    }
+}
+
+
+
+
+.pays{
+    width:690rpx; 
+    .btnBack;
+    position: absolute; left: 30rpx; bottom: 12rpx;
+}
+
+
+
+
+.statusPop{
+    width: 100%; height: 100%; position: fixed; top: 0; left: 0;
+    background: rgba(0, 0, 0, 0.4); 
+    display: flex; justify-content: center; align-items: center;
+    .pop{
+        width: 624rpx; height: 414rpx; background-color: #FFFFFF;
+        box-sizing: border-box; padding: 54rpx; text-align: center;
+        color: #333333; position: relative;
+        view:nth-child(1){
+            margin-top: 40rpx; 
+        }
+        view:nth-child(2){
+            font-size: 40rpx; font-weight: 600; margin-top: 20rpx;
+        }
+        .Balance{color: #FF2F00; margin-top: 10rpx;}
+        .btnPay{
+            width: 516rpx; .btnBack; position: absolute; bottom: 54rpx; left: 54rpx;
+        }
+    }
+
+    .pops{
+        width: 624rpx; height: 414rpx; background-color: #FFFFFF;
+        box-sizing: border-box; padding: 60rpx; text-align: center;
+        color: #333333; 
+        image{width: 88rpx; height: 88rpx;}
+        view{width: 342rpx; margin: 0 auto; margin-top: 22rpx;}
+        .btnPay{
+            width: 516rpx; .btnBack; margin-top: 38rpx;
+        }
+    }
+}
+
+
+
+
+
+
+
+
+
+.stage {
+    width: 100%; height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+}
+
+.dot-flashing {
+    position: relative;
+    width: 20rpx;
+    height: 20rpx;
+    border-radius: 50%;
+    background-color: #FFFFFF;
+    color: #FFFFFF;
+    animation: dotFlashing 1s infinite linear alternate;
+    animation-delay: .5s;
+}
+
+.dot-flashing::before {
+    left: -40rpx;
+    animation: dotFlashing 1s infinite alternate;
+    animation-delay: 0s;
+}
+
+.dot-flashing::after {
+    left: 40rpx;
+    animation: dotFlashing 1s infinite alternate;
+    animation-delay: 1s;
+}
+
+.dot-flashing::before,
+.dot-flashing::after {
+    content: '';
+    display: inline-block;
+    position: absolute;
+    top: 0;
+    width: 20rpx;
+    height: 20rpx;
+    border-radius: 50%;
+    background-color: #FFFFFF;
+    color: #FFFFFF;
+}
+
+@keyframes dotFlashing {
+    0% {
+        background-color: #FFFFFF;
+        transform: scale(0.8)
+    }
+
+    // 50% {
+    //     background-color: #FFFFFF; transform: scale(1.2)
+    // }
+    100% {
+        background-color: #FFFFFF; transform: scale(1.2)
+    }
+}
+
+</style>

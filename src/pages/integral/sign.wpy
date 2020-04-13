@@ -65,7 +65,9 @@ import { connect } from 'wepy-redux'
 import 'wepy-async-function'
 
 @connect({
-    
+    // signinlately(state) {
+    //     return state.counter.signinlately;
+    // },
 })
     
 export default class Sign extends wepy.page {

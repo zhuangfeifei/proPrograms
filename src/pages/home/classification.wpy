@@ -1,56 +1,47 @@
 <template>
     <view id="classification">
-
+            
         <view class="classification_nav">
             <view class="searchdiv">
                 <view class="search">
                     <van-icon name="search" size="25px" />
                     <input type='text' value="{{value}}" bindinput="changeInput" bindconfirm="confirm" placeholder="搜索此分类下的课程" confirm-type="search" placeholder-style="color:#999999"/>
                 </view>
-                <text @tap="searchs">搜索</text>
-            </view>
-            <view class="classificationList">
-                <view wx:if="{{index < 6}}" class="classificationList_cont" wx:for="{{classificationList}}" wx:key="{{index}}">
-                    <view class="classifications" @tap="changeclassification" data-index="{{index}}">
-                        <view>
-                            <text class="{{classificationIndex == index ? 'classificationActive' : ''}}">{{item.CategoryName}}</text>
-                        </view>
-                    </view>
-                    <image wx:if="{{classificationIndex == index}}" src="/images/home/Rectangle2.png" mode="aspectFill" lazy-load/>
-                </view>
-                <view wx:if="{{isShow && index > 5}}" class="classificationList_cont" wx:for="{{classificationList}}" wx:key="{{index}}">
-                    <view class="classifications" @tap="changeclassification" data-index="{{index}}">
-                        <view>
-                            <text class="{{classificationIndex == index ? 'classificationActive' : ''}}">{{item.CategoryName}}</text>
-                        </view>
-                    </view>
-                    <image wx:if="{{classificationIndex == index}}" src="/images/home/Rectangle2.png" mode="aspectFill" lazy-load/>
-                </view>
-            </view>
-            <view class="shows" @tap="change">
-                <image src="/images/home/{{isShow ? 'shang' : 'xia'}}.png" mode="aspectFill" lazy-load/>
+                <text @tap="searchs">取消</text>
             </view>
         </view>
 
-        <view wx:if="{{collegeList}}" class="classificationAll">
-            <block wx:for="{{collegeList}}" wx:key="{{index}}">
-                <view @tap="details" data-item="{{item}}" class="classificationAllList">
-                    <image src="{{item.SmallImageUrl}}" mode="aspectFill" lazy-load/>
-                    <view class="classificationAllList_cont">
-                        <view class="classificationAllList_cont_title">
-                            <view>{{item.Title}}</view>
-                            <tex>{{item.ViewCount}}人已学</tex>
-                        </view>
-                        <view class="classificationAllList_cont_">{{item.Description}}</view>
-                        <view class="classificationAllList_lecturer">
-                            <image wx:if="{{item.SalePrice > 0 && !isIos}}" class="SalePrice" src="/images/home/cb.png" lazy-load/>
-                            <image wx:if="{{item.SalePrice == 0}}" src="/images/home/free.png" />
-                            <text wx:if="{{item.SalePrice > 0 && !isIos}}" class="annualGiving_amout"> {{item.SalePrice / 100}}</text>
-                            <text> 讲师 | {{item.TeacherName}}</text>
-                        </view>
+        <view wx:if="{{collegeList.length>0}}" class="classification_main">
+            <view class="classification_left" style="height:{{screenHeight}}px">
+                <view class="classification_lefts">
+                    <view class="classificationList_cont" wx:for="{{classificationList}}" wx:key="{{index}}"
+                        @tap="changeclassification" data-index="{{index}}">
+                        <image src="{{index==0? freeImg : item.Description}}" mode="aspectFill" lazy-load/>
+                        <text class="{{classificationIndex == index ? 'classificationActive' : ''}}">{{item.CategoryName}}</text>
                     </view>
                 </view>
-            </block>
+                <view class="classification_solid">
+                    <view wx:for="{{classificationList}}" wx:key="{{index}}"
+                        @tap="changeclassification" data-index="{{index}}" class="sanjiao">
+                        <view wx:if="{{classificationIndex == index}}"></view>
+                    </view>
+                </view>
+            </view>
+            <view class="classification_right">
+                <block wx:for="{{collegeList}}" wx:key="{{index}}">
+                    <view @tap="details" data-item="{{item}}" class="classificationAllList">
+                        <image src="{{item.SmallImageUrl}}" mode="aspectFill" lazy-load/>
+                        <view class="classificationAllList_cont_title">
+                            <view>{{item.Title}}</view>
+                            <view class="text"> 讲师 | {{item.TeacherName}}</view>
+                        </view>
+                    </view>
+                </block>
+                <view wx:if="{{PageIndex >1}}" class="videoLoading">
+                    <van-loading wx:if="{{isGet}}" type="spinner" size="20px" color="#999999" />
+                    <text wx:else> ~没有更多了！</text>
+                </view>
+            </view>
         </view>
 
         <view wx:if="{{collegeList.length==0}}" class="noClassificationAllList">
@@ -80,16 +71,11 @@
             </block>
         </view>
 
-        <view wx:if="{{PageIndex >1}}" class="videoLoading">
-            <van-loading wx:if="{{isGet}}" type="spinner" size="20px" color="#999999" />
-            <text wx:else> ~没有更多了！</text>
-        </view>
 
-
-        <view wx:if="{{isLogin}}" @tap="preventTouchMove" class="haibao">
+        <!-- <view wx:if="{{isLogin}}" @tap="preventTouchMove" class="haibao">
             <view class="skip" @tap.stop="Haibao">跳过</view>
             <image src="https://zcxy.oss-cn-beijing.aliyuncs.com/xcx/guidance/step2.png?v1" lazy-load/>
-        </view>
+        </view> -->
 
 
         <view id="Popup" wx:if="{{isSign}}">
@@ -139,7 +125,9 @@ export default class Classification extends wepy.page {
         isIos: false,
         userinfo:'',
         isLogin: false,
-        isSign: false, Point: 0
+        isSign: false, Point: 0,
+        freeImg:'',
+        screenHeight:''
     }
     
     computed = {
@@ -175,6 +163,11 @@ export default class Classification extends wepy.page {
             this.value = ''
             this.PageIndex = 1
             this.getList()
+            if (wx.pageScrollTo) {
+                wx.pageScrollTo({
+                    scrollTop: 0
+                })
+            }
             this.$apply()
         },
         change(){
@@ -185,10 +178,13 @@ export default class Classification extends wepy.page {
             this.getList()
         },
         searchs(){
+            this.classificationIndex = 0
+            this.value = ''
             this.getList()
         },
         changeInput(e){
             this.value = e.detail.value
+            this.getList()
         },
         details(e){
             // console.log(e.currentTarget.dataset.item)
@@ -230,9 +226,56 @@ export default class Classification extends wepy.page {
                 this.$apply()
             }
         })
+
+        let screenHeight = wx.getSystemInfoSync().windowHeight
+        this.screenHeight = screenHeight- this.px(130)
+
+
+    }
+
+    px(rpx) {
+        var systemInfo = wx.getSystemInfoSync()
+      return rpx / 750 * systemInfo.windowWidth
     }
     
     onShow() {
+        wepy.$Api.college().then(res=>{
+            // console.log(res.data)
+            if(res.data.IsSuccess){
+                let list = []
+                for(let val of res.data.Data.List){
+                    // console.log(val)
+                    if(val.SonCategory.length == 0){
+                        list.push(val)
+                    }else{
+                        list = list.concat(val.SonCategory)
+                    }
+                }
+                // console.log(list)
+                list.unshift({CategoryId:0, CategoryName: '全部课程', SonCategory:[]});
+                this.classificationList = list
+                this.freeImg = res.data.Data.Description
+                
+                this.classificationIndex = this.CategoryIdIndex || 0
+                this.$apply()
+            }
+        })
+        let lists = {
+            CategoryId: this.CategoryId, 
+            CategoryId2: 0, 
+            PageIndex: this.PageIndex, PageSize:10, SearchCollegeName: this.value
+        }
+        wepy.$Api.collegeList(lists).then(res=>{
+            // console.log(res.data)
+            if(res.data.IsSuccess){
+                this.collegeList = res.data.Data
+                this.isGet = res.data.Data.length == 0 ? false : true
+                this.$apply()
+            }
+        })
+
+
+        
         this.PageIndex = 1
         this.$apply()
 
@@ -256,39 +299,7 @@ export default class Classification extends wepy.page {
             }
         })
         
-        wepy.$Api.college().then(res=>{
-            // console.log(res.data)
-            if(res.data.IsSuccess){
-                let list = []
-                for(let val of res.data.Data.List){
-                    // console.log(val)
-                    if(val.SonCategory.length == 0){
-                        list.push(val)
-                    }else{
-                        list = list.concat(val.SonCategory)
-                    }
-                }
-                // console.log(list)
-                list.unshift({CategoryId:0, CategoryName: '全部', SonCategory:[]});
-                this.classificationList = list
-                
-                this.classificationIndex = this.CategoryIdIndex || 0
-                this.$apply()
-            }
-        })
-        let lists = {
-            CategoryId: this.CategoryId, 
-            CategoryId2: 0, 
-            PageIndex: this.PageIndex, PageSize:10, SearchCollegeName: this.value
-        }
-        wepy.$Api.collegeList(lists).then(res=>{
-            // console.log(res.data)
-            if(res.data.IsSuccess){
-                this.collegeList = res.data.Data
-                this.isGet = res.data.Data.length == 0 ? false : true
-                this.$apply()
-            }
-        })
+        
     }
 
     getList(){
@@ -305,7 +316,6 @@ export default class Classification extends wepy.page {
                 this.PageIndex == 1 ? this.collegeList = res.data.Data : this.collegeList = this.collegeList.concat(res.data.Data)
                 this.isGet = res.data.Data.length == 0 ? false : true
                 if(res.data.Data.length == 0) this.recommendListMethod() 
-                this.value = ''
                 this.$apply()
             }
         })
@@ -369,13 +379,13 @@ export default class Classification extends wepy.page {
 
 <style lang='less'>
 #classification{
-    width: 100%; min-height: 100%;
+    width: 100%; min-height: 100%; padding-top: 140rpx; background-color: white;
 }
 
 
 .classification_nav{
-    width: 100%; border-bottom: 10rpx solid #F5F3F2; padding-top: 30rpx;
-    box-sizing: border-box; padding: 0 32rpx;
+    width: 100%; background-color: white; position: fixed; top: 0; left: 0;
+    box-sizing: border-box; padding: 30rpx; border-bottom: 10rpx solid #F5F3F2;
     .searchdiv{
         width: 100%; height: 70rpx; display: flex; justify-content: space-between; align-items: center;
         .search{
@@ -384,30 +394,65 @@ export default class Classification extends wepy.page {
             input{padding-left: 10rpx; width: 100%;}
         }
     }
-    .classificationList{
-        width: 100%; display: flex; flex-wrap: wrap; box-sizing: border-box;
-        .classificationList_cont{
-            width: 212rpx; height: 72rpx; background-color: #F5F5F5; border-radius: 4rpx; text-align: center; position: relative;
-            margin-top: 24rpx;  color: #000000; font-size: 28rpx; margin-right: 24rpx;
-            .classificationActive{color: #FC6619;}
-            .classifications{
-                width: 100%; height: 100%; display: flex; justify-content: center; align-items: center;
-                position: absolute; top: 0; left: 0; z-index: 10;
+}
+
+
+
+.classification_main{
+    width: 100%; display: flex; justify-content: space-between;
+    box-sizing: border-box;
+    .classification_left{
+        width: 240rpx; height: 100%; background-color: white; position: fixed; left: 0; top: 137rpx;
+        overflow-y: auto; display: flex; justify-content: space-between;
+        .classification_solid{
+            width: 10rpx; height: 100%; background-color: #F5F3F2;
+            .sanjiao{
+                width: 100%; height: 90rpx; display: flex; align-items: center;
+                view{
+                    width: 0; position: relative; left: -9rpx;
+                    height: 0;
+                    border-width: 10rpx;
+                    border-style: solid;
+                    border-color: transparent white transparent transparent;
+                }
             }
-            image{width: 100%; height: 100%; position: absolute; top: 0; left: 0; z-index: 1;}
         }
-        .classificationList_cont:nth-child(3n){margin-right: 0;}
+        .classificationList_cont{
+            width: 100%; height: 90rpx; display: flex; align-items: center; box-sizing: border-box;
+            padding-left: 22rpx; color: #333333; 
+            image{width: 36rpx; height: 36rpx; margin-right: 12rpx;}
+            .classificationActive{color: #FA6400;font-family:PingFangSC-Semibold,PingFang SC; font-weight: 600;}
+        }
     }
-    .shows{
-        width: 100%; height: 80rpx; display: flex; justify-content: center; align-items: center;
-        image{width: 24rpx; height: 20rpx; }
+    .classification_right{
+        width: calc(100% - 230rpx); height: 100%; background-color: white; margin-left: 240rpx;
+        display: flex; justify-content: space-between; flex-wrap: wrap; box-sizing: border-box;
+        padding: 40rpx 40rpx 40rpx 20rpx;
+        .classificationAllList{
+            width: 200rpx; height: 190rpx; margin-bottom: 40rpx;
+            image{width: 100%; height: 120rpx; border-radius:10rpx;}
+            .classificationAllList_cont_title{
+                width: 100%;
+                view{
+                    width: 100%; height: 30rpx; line-height: 30rpx; font-size: 28rpx; color: #333333;
+                    display: -webkit-box;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                    word-wrap: break-word;
+                    white-space: normal !important;
+                    -webkit-line-clamp: 1;
+                    -webkit-box-orient: vertical;
+                }
+                .text{ color: #999999; font-size: 24rpx; margin-top: 10rpx;}
+            }
+        }
     }
 }
 
 
 
 .classificationAll{
-    width: 100%; box-sizing: border-box; padding: 0 30rpx;
+    width: 100%; box-sizing: border-box; padding: 0 30rpx; margin-top: 10rpx; background-color: white;
     h2{ color: #333333; font-size: 36rpx;font-family:PingFangSC-Semibold; font-weight:600; }
     .classificationAllList{
         width: 100%; display: flex; justify-content: space-between; align-items: center; box-sizing: border-box; 
@@ -440,7 +485,7 @@ export default class Classification extends wepy.page {
             }
             .classificationAllList_lecturer{
                 width: 100%; 
-                text{ color: #999999; color: 24rpx; }
+                text{ color: #999999; font-size: 24rpx; }
                 .SalePrice{
                     width: 35rpx; height: 40rpx; position: relative; top: 10rpx;
                 }
@@ -464,7 +509,7 @@ export default class Classification extends wepy.page {
 
 
 .videoLoading{
-    width: 100%; height: 50rpx; text-align: center; padding-top: 10rpx;
+    width: 100%; height: 20rpx; text-align: center; padding-top: 10rpx;
     font-size: 24rpx; color: #999999;
 }
 

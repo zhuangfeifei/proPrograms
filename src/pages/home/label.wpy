@@ -119,7 +119,7 @@ export default class Label extends wepy.page {
         }
     }
     
-    onLoad() {
+    onShow() {
         wepy.$Api.getall().then(res=>{
             // console.log(res.data)
             if(res.data.IsSuccess){

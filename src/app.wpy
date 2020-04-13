@@ -35,7 +35,12 @@ export default class extends wepy.app {
       'pages/home/evaluation',
       'pages/home/label',
       'pages/home/pay',
+      'pages/home/h5pay',
       'pages/home/web',
+      'pages/home/weblive',
+      'pages/home/giving',
+      'pages/home/success',
+      'pages/home/receive',
       'pages/login/login',
       'pages/login/registered',
       'pages/login/successfully',
@@ -53,10 +58,12 @@ export default class extends wepy.app {
       'pages/my/watchRecord',
       'pages/my/myCoupons',
       'pages/my/myOrder',
+      'pages/my/webmyLearning',
       'pages/authorization/authorization',
       'pages/authorization/agreement',
       'pages/integral/integral',
       'pages/integral/sign',
+      'pages/cart/cart',
     ],
     window: {
       backgroundTextStyle: 'light',
@@ -71,6 +78,12 @@ export default class extends wepy.app {
           text: '首页',
           iconPath: 'images/home/homes.png',
           selectedIconPath: 'images/home/home.png'
+        },
+        {
+          pagePath: 'pages/cart/cart',
+          text: '购物车',
+          iconPath: 'images/home/carts.png',
+          selectedIconPath: 'images/home/cart.png'
         },
         {
           pagePath: 'pages/home/classification',

@@ -10,7 +10,7 @@ module.exports = {
     GetHomeBannerInfo: (data) => { // 首页
         return api.request('/combination/xcx/home', 'get', wepy.$store.getState().counter.userinfo.Token, data)
     },
-    collegedetail: (data) => { // 课程详情
+    collegedetails: (data) => { // 课程详情
         return api.request(`/college/collegedetail/${data}`, 'get', wepy.$store.getState().counter.userinfo.Token)
     },
     collegedetailnu: (data) => { // 课程详情
@@ -67,6 +67,9 @@ module.exports = {
     recordwatch: (data) => { // 记录观看进度
         return api.request(`/combination/recordwatch`, 'post', wepy.$store.getState().counter.userinfo.Token, data)
     },
+    recordwatchfrequency: (data) => { // 记录观看进度频率
+        return api.request(`/combination/xcx/recordwatchfrequency`, 'get', wepy.$store.getState().counter.userinfo.Token, '')
+    },
     getwatch: (data) => { // 查看观看进度
         return api.request(`/combination/getwatch`, 'post', wepy.$store.getState().counter.userinfo.Token, data)
     },
@@ -86,7 +89,16 @@ module.exports = {
         return api.request(`/point/signin`, 'get', wepy.$store.getState().counter.userinfo.Token, '')
     },
     signinlately: (data) => { // 签到记录
-        return api.request(`/point/signinlately`, 'get', wepy.$store.getState().counter.userinfo.Token, '')
+        return new Promise((resolve, reject) => {
+            wx.getStorage({
+                key:'userinfo',
+                success:res=>{
+                    // console.log(res)
+                    resolve(api.request(`/point/signinlately`, 'get', res.data.Token, ''))
+                }
+            })
+        })
+        // return api.request(`/point/signinlately`, 'get', userinfos.Token, '')
     },
     signinpointlist: (data) => { // 签到奖品信息
         return api.request(`/point/signinpointlist`, 'get', wepy.$store.getState().counter.userinfo.Token, '')
@@ -105,5 +117,41 @@ module.exports = {
     },
     setxcxtask: (data) => { // 用户引导
         return api.request(`/tag/setxcxtask`, 'post', wepy.$store.getState().counter.userinfo.Token, data, 'application/json')
+    },
+    popup: (data) => { // 首页弹窗
+        return api.request(`/xcx/popup`, 'get', wepy.$store.getState().counter.userinfo.Token, '', '')
+    },
+    isDis: (data) => { // 是否显示个人学习小组
+        return api.request(`/xcx/isDis`, 'get', wepy.$store.getState().counter.userinfo.Token, '', '')
+    },
+    livestreaming: (data) => { // 分享
+        return api.request(`/livestreaming/online/list?pageIndex=1`, 'post', wepy.$store.getState().counter.userinfo.Token, '')
+    },
+    getsendcode: (data) => { // 获取赠送码（购买成功后）
+        return api.request(`/distribution/getsendcode?collegeId=${data}`, 'get', wepy.$store.getState().counter.userinfo.Token, '')
+    },
+    giftcollegepage: (data) => { // 获取赠送码
+        return api.request(`/distribution/giftcollegepage?collegeId=${data}`, 'get', wepy.$store.getState().counter.userinfo.Token, '')
+    },
+    acceptgiftinfo: (data) => { // 获取赠送码赠送情况
+        return api.request(`/distribution/acceptgiftinfo?collegeId=${data.id}&sendCode=${data.code}&isNeedBuyInfo=true`, 'get', wepy.$store.getState().counter.userinfo.Token, '')
+    },
+    acceptgift: (data) => { // 领取课程
+        return api.request(`/distribution/acceptgift?collegeId=${data.id}&sendCode=${data.code}`, 'get', wepy.$store.getState().counter.userinfo.Token, '')
+    },
+    becomesub: (data) => { // 绑定分销人码
+        return api.request(`/distribution/becomesub?code=${data}`, 'get', wepy.$store.getState().counter.userinfo.Token, '')
+    },
+    cartadds: (data) => { // 添加购物车
+        return api.request(`/order/shoppingcart/add`, 'post', wepy.$store.getState().counter.userinfo.Token, data)
+    },
+    cartget: (data) => { // 获取购物车
+        return api.request(`/order/shoppingcart/get`, 'get', wepy.$store.getState().counter.userinfo.Token, '')
+    },
+    cartdel: (data) => { // 删除购物车
+        return api.request(`/order/shoppingcart/del`, 'post', wepy.$store.getState().counter.userinfo.Token, data)
+    },
+    creategrouporder: (data) => { // 购物车下单
+        return api.request(`/order/creategrouporder`, 'post', wepy.$store.getState().counter.userinfo.Token, data, 'application/json')
     },
 }

@@ -15,12 +15,12 @@
                 <view wx:if="{{isVideoLoading}}" class="videoLoading"><van-loading type="spinner" color="#fff" /></view>
                 <image wx:if="{{isVideoing}}" class="videoBanners" src="{{collegedetail.TeacherInfo.LogoUrl}}" mode="aspectFill" lazy-load/>
 
-                <view class="details_tab">
-                    <block wx:for="{{tabList}}" wx:key="{{index}}">
+                <view wx:if="{{collegedetail}}" class="details_tab">
+                    <block wx:for="{{tabList}}" wx:key="{{item+index}}">
                         <view class="tabList" @tap="changeTab" data-index="{{index}}">
-                            <text>{{item}}</text><view class="{{tabIndex == index ? 'tabActive' : ''}}"></view>
+                            <text>{{collegedetail.IsSeries == 1 && index == 1 ? '系列课程' : item}}</text><view class="{{tabIndex == index ? 'tabActive' : ''}}"></view>
                             <form class="form" bindsubmit="formSubmit" report-submit="{{true}}">
-                                <button formType="submit">Submit</button>
+                                <button formType="submit"></button>
                             </form>
                         </view>
                     </block>
@@ -48,17 +48,31 @@
                 </view>
             </view>
             <view wx:if="{{tabIndex == 0 && collegedetail}}" class="details_Introduction">
-                <h2>课程内容</h2>
-                <view class="v_html">
+                <view>
+                    <h2 class="{{isXuzhi?'':'h2'}}" @tap="isXuzhiMethods" data-item="{{false}}">课程内容</h2> <h2 wx:if="{{!isIos}}" class="{{isXuzhi?'h2':''}}" @tap="isXuzhiMethods" data-item="{{true}}">购买须知</h2>
+                </view>
+                <view wx:if="{{!isXuzhi}}" class="v_html">
                     <template is="wxParse" data="{{wxParseData:article.nodes}}"/>
+                </view>
+                <view wx:else class="xuzhi">
+                    <image src="https://zcxy.oss-cn-beijing.aliyuncs.com/xcx/buyxuzhi.png" />   
+                    <!-- <image src="https://zcxy.oss-cn-beijing.aliyuncs.com/xcx/1.png" />   
+                    <image src="https://zcxy.oss-cn-beijing.aliyuncs.com/xcx/2.png" />   
+                    <image src="https://zcxy.oss-cn-beijing.aliyuncs.com/xcx/3.png" />   
+                    <image src="https://zcxy.oss-cn-beijing.aliyuncs.com/xcx/4.png" />   
+                    <image src="https://zcxy.oss-cn-beijing.aliyuncs.com/xcx/5.png" />
+                    <image src="https://zcxy.oss-cn-beijing.aliyuncs.com/xcx/6.png" /> -->
                 </view>
             </view>
             </scroll-view>
 
             <!-- 课程目录 -->
-            <scroll-view wx:if="{{tabIndex == 1}}" scroll-y style="height: {{(screenHeight + px(134))+'px'}};">
+            <seriesList wx:if="{{tabIndex == 1 && collegedetail.IsSeries == 1}}" 
+                :collegedetail.sync="collegedetail" @series-emit.user="counterEmit" :isIos.sync="isIos" >
+            </seriesList>
+            <scroll-view wx:if="{{tabIndex == 1 && collegedetail.IsSeries == 0}}" scroll-y style="height: {{(screenHeight + px(134))+'px'}};">
                 <view class="directory">
-                    <block wx:for="{{collegedetail.CollegeClass}}" wx:key="{{index}}">
+                    <block wx:for="{{collegedetail.CollegeClass}}" wx:key="{{item.ClassName}}">
                         <!-- <view class="directoryList {{directoryListIndex === index ? 'directoryListActive' : ''}}" @tap="changeDirectory" data-item="{{item}}" data-index="{{index}}">
                             <h5>{{index > 8 ? index+1 : '0'+(index+1)}}</h5>
                             <view class="directoryList_name">
@@ -76,8 +90,15 @@
                                 <view class="directoryList_name_">{{item.ClassName}}</view>
                                 <view wx:if="{{directoryListIndex === index}}" class="directoryList_name_zz">{{item.IsFree ? '免费' : '正在看'}}</view>
                                 <image wx:if="{{item.ClassDetail}}" src="/images/home/xias.png" mode="aspectFill" lazy-load />
-                                <view wx:if="{{item.ClassDetail}}" class="conclusion">本节知识点：
-                                    <view>{{item.ClassDetail}}</view>
+                                <view wx:if="{{item.ClassDetail}}" class="conclusion">
+                                    <view>
+                                        本节知识点：
+                                    </view>
+                                    <view>
+                                        <text>{{item.ClassDetail}}</text>
+                                    </view>
+                                    <!-- <template is="wxParse" data="{{wxParseData:articleArray[index]}}"/> -->
+                                    
                                 </view>
                             </view>
                         </view>
@@ -93,18 +114,18 @@
                         <h2>评价和提问</h2>
                         <text>（{{getevaluate.length}}条）</text>
                     </view>
-                    <view wx:if="{{getevaluate.length > 0}}" class="xinxin"><image wx:for="{{collegedetail.ComEvaluate}}" wx:key="{{index}}" src="/images/home/xin3.png" mode="aspectFill" lazy-load /></view>
+                    <view wx:if="{{getevaluate.length > 0}}" class="xinxin"><image wx:for="{{collegedetail.ComEvaluate}}" wx:key="{{item+index}}" src="/images/home/xin3.png" mode="aspectFill" lazy-load /></view>
                     <view wx:else>暂无评价</view>
                 </view>
-                <block wx:for="{{getevaluate}}" wx:key="{{index}}">
+                <block wx:for="{{getevaluate}}" wx:key="{{item+index}}">
                     <view class="details_evaluation_List">
                         <view class="evaluation_portrait"><image src="{{item.LogoUrl}}" mode="aspectFill" lazy-load/></view>
                         <view class="evaluation_cont">
                             <view class="evaluation_cont_title">
                                 <text>{{item.UserName}}</text>
                                 <view>
-                                    <image wx:for="{{item.Score}}" wx:key="{{index}}" src="/images/home/xin1.png" mode="aspectFill" lazy-load />
-                                    <image wx:for="{{5 - item.Score}}" wx:key="{{index}}" src="/images/home/xin2.png" mode="aspectFill" lazy-load />
+                                    <image wx:for="{{item.Score}}" wx:key="{{item+index}}" src="/images/home/xin1.png" mode="aspectFill" lazy-load />
+                                    <image wx:for="{{5 - item.Score}}" wx:key="{{item+index}}" src="/images/home/xin2.png" mode="aspectFill" lazy-load />
                                 </view>
                             </view>
                             <view class="evaluation_content">
@@ -146,19 +167,41 @@
             </view>
 
 
-            <view wx:if="{{collegedetail.SalePrice >0 && (OrderStatus == 102 || OrderStatus == 1)}}" class="buy">
-                <view class="buy_btn" @tap="buyMethod">{{isIos ? '请至箴创学院官网咨询' : '立即购买'}}
+            <view class="buy">
+                <view wx:if="{{isIos}}" class="buy_btn" @tap="buyMethod">请至箴创学院官网咨询
                     <form class="form" bindsubmit="formSubmit" report-submit="{{true}}">
                         <button formType="submit">Submit</button>
                     </form>
                 </view>
+                <view wx:else class="giving">
+                    <view class="givingCont" @tap="gogiving">
+                        <image src="https://zcxy.oss-cn-beijing.aliyuncs.com/xcx/%E7%A4%BC%E7%89%A9%402x.png" mode="aspectFill" lazy-load/>
+                        <view>赠送</view>
+                    </view>
+                    <view class="givingCont" @tap="gocart">
+                        <image src="https://zcxy.oss-cn-beijing.aliyuncs.com/xcx/%E8%B4%AD%E7%89%A9%E8%BD%A6%402x.png" mode="aspectFill" lazy-load/>
+                        <view>购物车</view>
+                    </view>
+                    <view class="changeTabbuy">
+                        <view wx:if="{{collegedetail.IsSeries == 1 && collegedetail.CollegeClass[directoryListIndex].IsBuy == 2}}" @tap="addCart">加入购物车</view>
+                        <view wx:if="{{collegedetail.IsSeries == 0 && (collegedetail.SalePrice >0 && (OrderStatus == 102 || OrderStatus == 1))}}" @tap="addCart">加入购物车</view>
+                        <view wx:if="{{collegedetail.IsSeries == 0}}" class="buy_btn buy_btns {{collegedetail.SalePrice >0 && (OrderStatus == 102 || OrderStatus == 1) ? '' : 'buyEnd'}}" @tap="buyMethod">
+                            {{collegedetail.SalePrice >0 && (OrderStatus == 102 || OrderStatus == 1) ? '购买此课程' : '已购买此课程'}}
+                            <form class="form" bindsubmit="formSubmit" report-submit="{{true}}">
+                                <button formType="submit">Submit</button>
+                            </form>
+                        </view>
+                        <view wx:else @tap="buyMethod" class="{{collegedetail.CollegeClass[directoryListIndex].IsBuy == 2 ? '' : 'buyEnd'}}">{{collegedetail.CollegeClass[directoryListIndex].IsBuy == 2 ? '购买本节课程' : '已购买本节课程'}}</view>
+                        <!-- this.collegedetail.CollegeClass[directoryListIndex].IsBuy -->
+                    </view>
+                </view>
             </view>
-            <view wx:elif="{{tabIndex == 2}}" class="buy">
+            <view wx:if="{{tabIndex == 2}}" class="buy">
                 <view class="buy_btn" @tap="evaluationMethod">评价和提问</view>
             </view>
 
 
-            <view wx:if="{{isBindPhone}}" class="isBindPhone">
+            <view wx:if="{{isBindPhone}}" @tap="isBindPhones" class="isBindPhone">
                 <view class="isBindPhone_">
                     <image src="https://zcxy.oss-cn-beijing.aliyuncs.com/xcx/undraw_mail_2_tqip.png" mode="aspectFill" lazy-load/>
                     <view class="h4">立即绑定手机号</view>
@@ -183,6 +226,7 @@
 import wepy from 'wepy'
 import { connect } from 'wepy-redux'
 import 'wepy-async-function'
+import seriesList from '../../components/series-list'
 
 var WxParse = require('../../wxParse/wxParse.js');
 
@@ -205,13 +249,13 @@ export default class Details extends wepy.page {
     }
     
     components = {
-    
+        seriesList
     }
     
     data = {
         screenHeight:'', topNum:10, collegedetail:'', tabIndex:0, isBindPhone: false,
         tabList:['课程简介','课程目录','学员评价'],
-        directoryListIndex: '',
+        directoryListIndex: 0,
         videoIndexUrl:'',
         isVideo:true, isVideoLoading:false, isVideoing: false,
         collegedetails:'http://wxsnsdy.tc.qq.com/105/20210/snsdyvideodownload?filekey=30280201010421301f0201690402534804102ca905ce620b1241b726bc41dcff44e00204012882540400&bizid=1023&hy=SH&fileparam=302c020101042530230204136ffd93020457e3c4ff02024ef202031e8d7f02030f42400204045a320a0201000400',
@@ -225,14 +269,33 @@ export default class Details extends wepy.page {
         times:0, videoTitle:'',
         setIntervals:'', videoTimes: 0,
         Point:0,isSign: false,
-        autoplay: false
+        autoplay: false,
+        isXuzhi: false,
+        recordwatchTime: 20,
+        isRecord: true,
+        articleArray:[]
     }
     
     computed = {
     
     }
+
+    // events = {
+    //   'index-emit': (...args) => {
+    //     let $event = args[args.length - 1]
+    //     console.log(`${this.$name} receiveqweqwe ${$event.name} from ${$event.source.$name}`)
+    //   }
+    // }
     
     methods = {
+        isBindPhones(){
+            this.isBindPhone=false
+            this.$apply()
+        },
+        isXuzhiMethods(e){
+            this.isXuzhi = e.currentTarget.dataset.item
+            this.$apply()
+        },
         formSubmit (e){
             // console.log('form发生了submit事件，携带数据为：', e.detail)
             if(e.detail.formId != 'the formId is a mock one'){
@@ -247,6 +310,73 @@ export default class Details extends wepy.page {
         goLogin(){
             wx.navigateTo({url:'/pages/login/login'})
         },
+        gocart(){
+            wx.switchTab({url:'/pages/cart/cart'})
+        },
+        addCart(){
+            if(this.userinfo == ''){
+                wx.showModal({
+                    // title: '请登录',
+                    content: '您还没有登录！',
+                    confirmText: '去登录',
+                    success (res) {
+                        if (res.confirm) {
+                            wx.switchTab({url:'/pages/authorization/authorization'})
+                        } else if (res.cancel) {
+                        // console.log('用户点击取消')
+                        }
+                    }
+                })
+                return
+            }
+            if(this.collegedetail.CollegeClass[this.directoryListIndex].IsBuy == 2 || this.collegedetail.SalePrice >0 && (this.OrderStatus == 102 || this.OrderStatus == 1)){
+                wepy.$Api.cartadds({GoodsId: this.collegedetail.IsSeries == 0 ? this.collegedetail.Id : this.collegedetail.CollegeClass[this.directoryListIndex].ClassId, 
+                    GoodsType: this.collegedetail.IsSeries == 0 ? 1 : 11}).then(res=>{ // 添加购物车
+                    // console.log(res.data)
+                    wx.hideLoading()
+                    if(res.data.IsSuccess){
+                        wx.showToast({
+                            title: '添加成功！',
+                            icon: 'success',
+                            duration: 2000
+                        })
+                        this.$apply()
+                    }else{
+                        wx.showToast({
+                            title: res.data.Message,
+                            icon: 'none',
+                            duration: 2000
+                        })
+                    }
+                    this.$apply()
+                })
+            }
+        },
+        gogiving(){
+            wepy.$store.dispatch({
+                type: 'collegedetail',
+                payload: this.collegedetail
+            });
+            wepy.$Api.giftcollegepage(this.collegedetail.Id).then(res=>{ // 获取赠送码（赠送详情）
+                // console.log(res.data)
+                wx.hideLoading()
+                if(res.data.IsSuccess){
+                    if(res.data.Data.GiftCode == ''){
+                        wx.navigateTo({url:'/pages/home/giving'})
+                    }else{
+                        wx.navigateTo({url:'/pages/home/receive?givingCode=' + res.data.Data.GiftCode + '&collegeId=' + this.collegedetail.Id})
+                    }
+                    this.$apply()
+                }else{
+                    wx.showToast({
+                        title: res.data.Message,
+                        icon: 'none',
+                        duration: 2000
+                    })
+                }
+                this.$apply()
+            })
+        },
         scrolltoupper(){
 
         },
@@ -258,66 +388,21 @@ export default class Details extends wepy.page {
                 this.getevaluateMethod()
             }
         },
+        counterEmit (...args) {
+            let $event = args[0]
+            this.directoryListIndex = $event.currentTarget.dataset.index
+            this.changeDirectorys($event)
+        },
         changeDirectory(e){
-            // console.log(e)
-            // console.log(this.userinfo)
-            if(this.userinfo){
-                if(!this.collegedetail.CollegeClass[e.currentTarget.dataset.index].IsFree){
-                    // 判断是否购买
-                    let Goods = [{
-                        GoodsId: this.collegedetail.Id, GoodsType: this.collegedetail.GoodsType
-                    }]
-                    wepy.$Api.status({Goods}).then(res=>{ 
-                        // console.log(res.data)
-                        if(res.data.IsSuccess){
-                            this.OrderStatus = res.data.Data.Goods[0].OrderStatus
-                            // console.log(this.OrderStatus)
-                            if(res.data.Data.Goods[0].OrderStatus == 106){
-                                wx.showToast({
-                                    title: '此课程正在参加拼团，请至箴创学院官网查看最新进度！',
-                                    icon: 'none',
-                                    duration: 2000
-                                })
-                            }else if(res.data.Data.Goods[0].OrderStatus == 102){
-                                wx.showToast({
-                                    title: this.isIos?'您还没有解锁此课程，请点击下方去官网咨询':'您还没有购买此课程',
-                                    icon: 'none',
-                                    duration: 2000
-                                })
-                            }else{
-                                this.getwatch(e)
-                            }
-                            this.$apply()
-                        }else{
-                            
-                        }
-                    })
-                }else{ 
-                    this.getwatch(e)
-                }
-            }else{
-                wx.showModal({
-                    // title: '请登录',
-                    content: '您还没有登录！',
-                    confirmText: '去登录',
-                    success (res) {
-                        if (res.confirm) {
-                            wx.navigateTo({url:'/pages/authorization/authorization'})
-                        } else if (res.cancel) {
-                        // console.log('用户点击取消')
-                        }
-                    }
-                })
-            }
-            // this.$apply()
-            
+            this.directoryListIndex = e.currentTarget.dataset.index
+            this.changeDirectorys(e)
         },
         playVideo(){ // 开始播放
             this.isVideoing = this.collegedetail.CollegeType == '2' ? true : false
             if(this.userinfo){
                 this.setIntervals = setInterval(()=>{
-                    this.recordwatch(0)
-                },5000)
+                    if(this.isRecord) this.recordwatch(0) 
+                }, this.recordwatchTime*1000)
             }
             this.$apply()
         },
@@ -349,11 +434,19 @@ export default class Details extends wepy.page {
             }
             else if(this.userinfo){
                 // console.log(this.collegedetail)
-                wepy.$store.dispatch({
-                    type: 'collegedetail',
-                    payload: this.collegedetail
-                });
-                wx.navigateTo({url:'/pages/home/pay'})
+                if(this.collegedetail.SalePrice > 0 && (this.OrderStatus == 102 || this.OrderStatus == 1)){
+                    let obj = {
+                        SmallImageUrl: this.collegedetail.CollegeClass[this.directoryListIndex].SmallImageUrl,
+                        Title: this.collegedetail.CollegeClass[this.directoryListIndex].ClassName,
+                        ClassId: this.collegedetail.CollegeClass[this.directoryListIndex].ClassId,
+                        SalePrice: this.collegedetail.CollegeClass[this.directoryListIndex].SalePrice,
+                    }
+                    wepy.$store.dispatch({
+                        type: 'collegedetail',
+                        payload: this.collegedetail.IsSeries == 0 ? this.collegedetail : obj
+                    });
+                    wx.navigateTo({url:'/pages/home/pay'})
+                }
                 // this.isModel = !this.isModel
                 // if(this.isModel){
                 //     wepy.$Api.getcache().then(res=>{
@@ -447,6 +540,72 @@ export default class Details extends wepy.page {
         }
     }
 
+    changeDirectorys(e){
+        // console.log(e)
+        // console.log(this.userinfo)
+        if(this.userinfo){
+            if(this.collegedetail.IsSeries == 0){
+                if(!this.collegedetail.CollegeClass[this.directoryListIndex].IsFree){
+                    // 判断是否购买
+                    let Goods = [{
+                        GoodsId: this.collegedetail.Id, GoodsType: this.collegedetail.GoodsType
+                    }]
+                    wepy.$Api.status({Goods}).then(res=>{ 
+                        // console.log(res.data)
+                        if(res.data.IsSuccess){
+                            this.OrderStatus = res.data.Data.Goods[0].OrderStatus
+                            // console.log(this.OrderStatus)
+                            if(res.data.Data.Goods[0].OrderStatus == 106){
+                                wx.showToast({
+                                    title: '此课程正在参加拼团，请至箴创学院官网查看最新进度！',
+                                    icon: 'none',
+                                    duration: 2000
+                                })
+                            }else if(res.data.Data.Goods[0].OrderStatus == 102){
+                                wx.showToast({
+                                    title: this.isIos?'您还没有解锁此课程，请点击下方去官网咨询':'您还没有购买此课程',
+                                    icon: 'none',
+                                    duration: 2000
+                                })
+                            }else{
+                                this.getwatch(e)
+                            }
+                            this.$apply()
+                        }else{
+                            
+                        }
+                    })
+                }else{ 
+                    this.getwatch(e)
+                }
+            }else{
+                if(this.collegedetail.CollegeClass[this.directoryListIndex].IsBuy == 1 && this.collegedetail.CollegeClass[this.directoryListIndex].IsSeries == 1){
+                    // console.log(this.collegedetail.CollegeClass)
+                    // console.log(this.directoryListIndex)
+                    // console.log((this.collegedetail.CollegeClass[this.directoryListIndex].IsBuy == 1) )
+                    // console.log((this.collegedetail.CollegeClass[this.directoryListIndex].IsSeries == 1))
+                    // console.log((this.collegedetail.CollegeClass[this.directoryListIndex].IsBuy == 1) & (this.collegedetail.CollegeClass[this.directoryListIndex].IsSeries == 1))
+                    this.getwatch(e)
+                }
+            }
+        }else{
+            wx.showModal({
+                // title: '请登录',
+                content: '您还没有登录！',
+                confirmText: '去登录',
+                success (res) {
+                    if (res.confirm) {
+                        wx.navigateTo({url:'/pages/authorization/authorization'})
+                    } else if (res.cancel) {
+                    // console.log('用户点击取消')
+                    }
+                }
+            })
+        }
+        // this.$apply()
+        
+    }
+
     getevaluateMethod(){ // 获取评价
         wepy.$Api.getevaluate({CollegeId: this.collegedetail.Id, PageSize: 10, PageIndex: this.PageIndex}).then(res=>{
             // console.log(res.data)
@@ -460,13 +619,18 @@ export default class Details extends wepy.page {
 
     recordwatch(status){  // 记录播放进度
         // console.log(status)
+        this.isRecord = false
         wepy.$Api.recordwatch({TargetType: 7, ParentId: this.collegedetail.Id, TargetId: this.collegedetail.CollegeClass[this.directoryListIndex].ClassId, 
             Record: parseInt(this.videoTimes.currentTime), AllSec: parseInt(this.videoTimes.duration), Status: status}).then(res=>{
             // console.log(res.data)
             if(res.data.IsSuccess){
-
+                setTimeout(()=>{
+                    this.isRecord = true
+                    this.$apply()
+                }, (this.recordwatchTime - 1)*1000)
             }
         })
+        this.$apply()
     }
 
     getwatch(e){ // 获取课节播放进度
@@ -477,7 +641,6 @@ export default class Details extends wepy.page {
                 this.isVideo = false
                 this.isVideoing = false
                 this.isVideoLoading = true
-                this.directoryListIndex = e.currentTarget.dataset.index
                 this.videoIndexUrl = e.currentTarget.dataset.item.VideoUrl
                 this.videoTitle = e.currentTarget.dataset.item.ClassName
                 this.autoplay = true
@@ -529,15 +692,24 @@ export default class Details extends wepy.page {
         wx.showLoading({
             title: '加载中',
         })
-
-        if(this.userinfo){
+        // console.log(this.userinfo)
+        if(this.userinfo && this.userinfo.Mobile!=''){
             // 获取课程信息
-            wepy.$Api.collegedetail(this.CollegeId).then(res=>{
+            wepy.$Api.collegedetails(this.CollegeId).then(res=>{
                 // console.log(res.data)
                 wx.hideLoading()
                 this.collegedetail = res.data.Data
                 let html = res.data.Data.CollegeContent
                 WxParse.wxParse('article', 'html', html, this, 0);
+                // for(var i = 0; i < res.data.Data.CollegeClass.length; i ++){
+                //     if(res.data.Data.CollegeClass[i].ClassDetail){
+                //         let htmls = res.data.Data.CollegeClass[i].ClassDetail
+                //         WxParse.wxParse('article'+i, 'html', htmls, this, 0);
+                //         this.articleArray.push('article'+i+'.nodes')
+                //         this.$apply()
+                //     }
+                // }
+                // console.log(this.articleArray)
 
                 let e = {
                     currentTarget:{
@@ -556,37 +728,43 @@ export default class Details extends wepy.page {
                     // }
                     this.$apply()
                 }else{
-                    // 判断是否购买
-                    let Goods = [{
-                        GoodsId: this.collegedetail.Id, GoodsType: this.collegedetail.GoodsType
-                    }]
-                    wepy.$Api.status({Goods}).then(res=>{ 
-                        // console.log(res.data)
-                        if(res.data.IsSuccess){
-                            this.OrderStatus = res.data.Data.Goods[0].OrderStatus
-                            if(res.data.Data.Goods[0].OrderStatus == 106){
-                                wx.showToast({
-                                    title: '此课程正在参加拼团，请至箴创学院官网查看最新进度！',
-                                    icon: 'none',
-                                    duration: 4000
-                                })
-                            }else if(res.data.Data.Goods[0].OrderStatus == 102){
-                                wx.showToast({
-                                    title: this.isIos?'您还没有解锁此课程，请点击下方去官网咨询':'您还没有购买此课程',
-                                    icon: 'none',
-                                    duration: 2000
-                                })
-                                if(this.collegedetail.CollegeClass[0].IsFree) {
+                    if(this.collegedetail.IsSeries == 0){
+                        // 判断是否购买
+                        let Goods = [{
+                            GoodsId: this.collegedetail.Id, GoodsType: this.collegedetail.GoodsType
+                        }]
+                        wepy.$Api.status({Goods}).then(res=>{ 
+                            // console.log(res.data)
+                            if(res.data.IsSuccess){
+                                this.OrderStatus = res.data.Data.Goods[0].OrderStatus
+                                if(res.data.Data.Goods[0].OrderStatus == 106){
+                                    wx.showToast({
+                                        title: '此课程正在参加拼团，请至箴创学院官网查看最新进度！',
+                                        icon: 'none',
+                                        duration: 4000
+                                    })
+                                }else if(res.data.Data.Goods[0].OrderStatus == 102){
+                                    wx.showToast({
+                                        title: this.isIos?'您还没有解锁此课程，请点击下方去官网咨询':'您还没有购买此课程',
+                                        icon: 'none',
+                                        duration: 2000
+                                    })
+                                    if(this.collegedetail.CollegeClass[0].IsFree) {
+                                        this.getwatch(e)
+                                    }
+                                }else{
                                     this.getwatch(e)
                                 }
+                                this.$apply()
                             }else{
-                                this.getwatch(e)
+                                
                             }
-                            this.$apply()
-                        }else{
-                            
+                        })
+                    }else{
+                        if(this.collegedetail.CollegeClass[0].IsBuy == 1){
+                            this.getwatch(e)
                         }
-                    })
+                    }
                 }
                 this.$apply()
             })
@@ -608,7 +786,14 @@ export default class Details extends wepy.page {
         
         
         
-        
+        // 记录播放进度频率
+        wepy.$Api.recordwatchfrequency().then(res=>{
+            // console.log(res.data)
+            if(res.data.IsSuccess){
+                this.recordwatchTime = res.data.Data
+                this.$apply()
+            }
+        })
         
     }
 
@@ -695,7 +880,11 @@ export default class Details extends wepy.page {
         }
     }
     .form{
-        width: 100%; height: 100%; position: absolute; top: 0; left: 0; opacity: 0;
+        width: 100%; height: 100%; position: absolute; top: 0; left: 0; 
+        opacity: 0; 
+        button{
+            width: 100%; height: 100%;
+        }
     }
 }
 
@@ -731,18 +920,8 @@ export default class Details extends wepy.page {
                 }
                 .jiangshi{ width: 56rpx; height: 34rpx; margin-left: 10rpx; }
             }
-            // .details_information_user_cont_name_title{
-               
-            // }
             .details_information_user_cont_Tags{
                 width: 100%;
-                // display: -webkit-box;
-                // overflow: hidden;
-                // text-overflow: ellipsis;
-                // word-wrap: break-word;
-                // white-space: normal !important;
-                // -webkit-line-clamp: 1;
-                // -webkit-box-orient: vertical;
             }
         }
     }
@@ -750,35 +929,22 @@ export default class Details extends wepy.page {
 
 
 .details_Introduction{
-    width: 100%; box-sizing: border-box; padding: 40rpx 30rpx;
-    h2{ color: #333333; font-size: 36rpx;font-family:PingFangSC-Semibold; font-weight:600; }
-    .v_html{ width: 100%; margin-top: 40rpx; }
+    width: 100%; box-sizing: border-box; padding: 40rpx 0;
+    h2{ color: #333333; font-size: 36rpx; margin-left: 30rpx; margin-right: 40rpx;font-family:PingFangSC-Regular,PingFang SC; font-weight:400; }
+    .h2{font-family:PingFangSC-Semibold; font-weight:600;}
+    .v_html{ 
+        width: 100%; margin-top: 40rpx; text-align: center;
+    }
+    .xuzhi{
+        width: 100%; margin-top: 40rpx;
+        image{width: 100%; height: 1920rpx; vertical-align: top;}
+    }
 }
 
 
 // 课程目录列表
 .directory{
     width: 100%;
-    // .directoryList{
-    //     width: 100%; height: 104rpx; display: flex; justify-content: space-between; align-items: center;
-    //     box-sizing: border-box; padding-left: 30rpx;
-    //     h5{color: #D7D7D7; }
-    //     .directoryList_name{
-    //         width: 665rpx; height: 100rpx; border-bottom: 1px solid #EEEEEE; box-sizing: border-box;
-    //         display: flex; justify-content: space-between; align-items: center; padding-right: 30rpx;
-    //         .directoryList_name_{
-    //             min-width: 450rpx; height: 30rpx; line-height: 30rpx;
-    //             display: -webkit-box;
-    //             overflow: hidden;
-    //             text-overflow: ellipsis;
-    //             word-wrap: break-word;
-    //             white-space: normal !important;
-    //             -webkit-line-clamp: 1;
-    //             -webkit-box-orient: vertical;
-    //         }
-    //         .directoryList_name_zz{ min-width: 110rpx; color: #939393; text-align: right; }
-    //     }
-    // }
     
     .directoryCont{
         width: 100%; display: flex; justify-content: space-between;
@@ -809,6 +975,7 @@ export default class Details extends wepy.page {
             .directoryList_name_zz{ min-width: 110rpx; color: #939393; text-align: right; }
             .conclusion{
                 width: 100%; padding-bottom: 10px; padding-top: 5px; color: #939393; font-size: 24rpx;
+                view{min-width: 150rpx;}
             }
             image{width: 26rpx; height: 14rpx; margin-top: 10rpx;}
         }
@@ -899,14 +1066,35 @@ export default class Details extends wepy.page {
 
 
 .buy{
-    width: 100%; height: 134rpx; background-color: white; position: fixed; bottom: 0; left: 0; z-index: 11;
+    width: 100%; height: 96rpx; background-color: white; position: fixed; bottom: 0; left: 0; z-index: 11;
     .buy_btn{
-        width: 690rpx; height: 94rpx; background:linear-gradient(270deg,rgba(255,94,146,1) 0%,rgba(255,135,52,1) 100%);
-        text-align: center; line-height: 94rpx; border-radius: 47rpx; color: #FFFFFF; font-size: 36rpx; margin: 20rpx auto;
+        width: 240rpx; height: 72rpx; background:linear-gradient(270deg,rgba(255,94,146,1) 0%,rgba(255,135,52,1) 100%);
+        text-align: center; line-height: 72rpx;color: #FFFFFF; font-size: 28rpx;
         .form{
-            width: 100%; height: 100%; position: absolute; top: 0; left: 0; opacity: 0;
+            width: 240rpx; height: 100%; position: absolute; top: 0; right: 0; opacity: 0;
         }
     }
+    .giving{
+        width: 100%; height: 100%; display: flex; justify-content: space-between;
+        align-items: center; padding: 0 30rpx; box-sizing: border-box;
+        .buy_btn{width: 240rpx;}
+        .givingCont{
+            font-size: 18rpx;color:rgba(0,0,0,0.5); text-align: center;
+            image{width: 32rpx; height: 32rpx;}
+        }
+        .changeTabbuy{
+            width: 480rpx; height: 72rpx; display: flex; text-align: center;
+            line-height: 72rpx; font-weight:600; color: #FFFFFF;
+            view:nth-child(1){
+                width: 50%; height: 100%; background-color: #FC6619;
+            }
+            view:nth-child(2){
+                width: 50%; height: 100%; 
+                background:linear-gradient(270deg,rgba(255,94,146,1) 0%,rgba(255,135,52,1) 100%);
+            }
+        }
+    }
+    .buyEnd{width: 480rpx!important; background: #D7D7D7!important;}
 }
 
 

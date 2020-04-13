@@ -1,0 +1,329 @@
+<template>
+    <view id="pay">
+
+        <view wx:if="{{!givingDetails.SendCodeIsSelf}}" class="user">
+            <image src="{{givingDetails.FromUserImg}}" mode="aspectFill" lazy-load/>
+            <view>
+                <h3>{{givingDetails.FromUserName}}送你一门好课</h3>
+                <!-- <h3>{{userinfo.Mobile.substring(0,3)}}****{{userinfo.Mobile.substring(userinfo.Mobile.length - 4,userinfo.Mobile.length)}}送你一门好课</h3> -->
+                <view>快来和我一起学习吧！</view>
+            </view>
+        </view>
+
+        <view wx:if="{{collegedetail}}" class="classificationAll">
+            <view @tap="details" data-item="{{item}}" class="classificationAllList">
+                <image src="{{collegedetail.SmallImageUrl}}" mode="aspectFill" lazy-load/>
+                <view class="classificationAllList_cont">
+                    <view class="classificationAllList_cont_title">
+                        <view>{{collegedetail.Title}}</view>
+                    </view>
+                    <view class="classificationAllList_cont_">讲师 | {{collegedetail.TeacherName}}</view>
+                    <!-- <view class="classificationAllList_cont_chuang">
+                        <image class="cb" src="/images/home/cb.png"/>
+                        <text>{{collegedetail.SalePrice/100}}</text>
+                    </view> -->
+                </view>
+            </view>
+            <view class="description">{{collegedetail.Description}}</view>
+        </view>
+
+        <view wx:if="{{isSuccess}}" class="success">
+            <view><image src="https://zcxy.oss-cn-beijing.aliyuncs.com/xcx/successBig.png" mode="aspectFill" lazy-load/></view>
+            <view class="h3">领取成功</view>
+            <text>课程已加入到我的课程中</text>
+        </view>
+
+        <view class="status {{(!givingDetails.IsAccepted && !givingDetails.SendCodeIsSelf && !isSuccess) ? 'statuss' : ''}}">
+            <!-- 赠送人 -->
+            <view wx:if="{{givingDetails.SendCodeIsSelf}}">已领取好友</view>
+            <view wx:if="{{givingDetails.IsAccepted && givingDetails.SendCodeIsSelf}}">
+                <view><image src="{{givingDetails.ToUserImg}}" mode="aspectFill" lazy-load/></view>
+                <text>{{givingDetails.ToUserName}}</text>
+            </view>
+            <view wx:if="{{!givingDetails.IsAccepted && givingDetails.SendCodeIsSelf}}" class="noStatus">
+                尚未有好友领取哦
+            </view>
+            <!-- 领取人 -->
+            <view wx:if="{{givingDetails.IsAccepted && !givingDetails.SendCodeIsSelf}}">来晚一步，课程已被他人领取</view>
+            <view wx:if="{{givingDetails.IsAccepted && !givingDetails.SendCodeIsSelf}}">
+                <view><image src="{{givingDetails.ToUserImg}}" mode="aspectFill" lazy-load/></view>
+                <text>{{givingDetails.AcceptTime}}</text>
+            </view>
+        </view>
+
+
+        <view wx:if="{{!givingDetails.IsAccepted && givingDetails.SendCodeIsSelf}}" class="pays">发送链接给好友<button open-type="share"></button></view>
+
+
+        <view wx:if="{{!givingDetails.IsAccepted && !givingDetails.SendCodeIsSelf && !isSuccess}}" class="pays" @tap="givingMethod">立即领取到我的账户</view>
+
+        <view wx:if="{{isSuccess}}" class="pays" @tap="details">立即前往小程序学习</view>
+
+
+        <!-- <view wx:if="{{isShowShare}}" @tap="showShare" class="share">
+            <image src="https://zcxy.oss-cn-beijing.aliyuncs.com/xcx/%E7%9B%B4%E7%BA%BF%202%402x.png" mode="aspectFill" lazy-load/>
+            <view>点击这里即可发送给好友哦</view>
+        </view> -->
+        
+
+    </view>
+</template>
+
+<script>
+import wepy from 'wepy'
+import { connect } from 'wepy-redux'
+import 'wepy-async-function'
+
+@connect({
+    userinfo(state) {
+        return state.counter.userinfo;
+    },
+})
+    
+export default class Pay extends wepy.page {
+    
+    config = {
+        navigationBarTitleText: '赠送课程'
+    }
+    
+    components = {
+    
+    }
+    
+    data = {
+        isShowShare: false, phone:'',
+        givingCode:'', collegedetail:'', givingDetails:'', collegeId:'', isSuccess: false
+    }
+    
+    computed = {
+        
+    }
+    
+    methods = {
+        a(){},
+        details(e){
+            wepy.$store.dispatch({
+                type: 'CollegeIds',
+                payload: this.collegeId
+            });
+            wx.navigateTo({url:`/pages/home/details`})
+        },
+        givingMethod(){ // 领取课程
+            if(!this.givingDetails.IsBuy){
+                wx.showLoading({
+                    title: '领取中',
+                })
+                wepy.$Api.acceptgift({id: this.collegeId, code: this.givingCode}).then(_res=>{ // 
+                    // console.log(res.data)
+                    wx.hideLoading()
+                    if(_res.data.IsSuccess){
+                        this.isSuccess = true
+                        this.$apply()
+                    }else{
+                        wx.showToast({
+                            title: _res.data.Message,
+                            icon: 'none',
+                            duration: 2000
+                        })
+                    }
+                    this.$apply()
+                })
+            }else{
+                wx.showToast({
+                    title: '您已购买此课程！',
+                    // title: result.data.Message,
+                    icon: 'none',
+                    duration: 3000
+                })
+            }
+        },
+    }
+    
+    onLoad(option) {
+        
+        this.givingCode = option.givingCode
+        this.collegeId = option.collegeId
+        
+        // this.phone = this.userinfo.Mobile.substring(0,3)+ '****' + this.userinfo.Mobile.substring(this.userinfo.Mobile.length - 4, this.userinfo.Mobile.length)
+        
+        this.$apply()
+    }
+
+    onShow(){
+        wx.showLoading({
+            title: '加载中',
+        })
+        wx.getStorage({
+            key:'userinfo',
+            success:res=>{
+                setTimeout(()=>{
+                    wepy.$Api.giftcollegepage(this.collegeId).then(res=>{ // 获取赠送码（赠送详情）
+                        // console.log(res.data)
+                        wx.hideLoading()
+                        if(res.data.IsSuccess){
+                            this.collegedetail = res.data.Data
+                            this.$apply()
+                        }else{
+                            wx.showToast({
+                                title: res.data.Message,
+                                icon: 'none',
+                                duration: 2000
+                            })
+                        }
+                        this.$apply()
+                    })
+                    wepy.$Api.acceptgiftinfo({id: this.collegeId, code: this.givingCode}).then(_res=>{ // 获取赠送码赠送情况
+                        // console.log(res.data)
+                        wx.hideLoading()
+                        if(_res.data.IsSuccess){
+                            this.givingDetails = _res.data.Data
+                            this.$apply()
+                        }else{
+                            wx.showToast({
+                                title: _res.data.Message,
+                                icon: 'none',
+                                duration: 2000
+                            })
+                        }
+                        this.$apply()
+                    })
+                },1000)
+            },
+            fail:res=>{
+                wx.navigateTo({
+                    url: '/pages/authorization/authorization'
+                })
+                this.$apply()
+            }
+        })
+    }
+
+    onShareAppMessage(res) {
+        if (res.from === 'button') {
+            // 来自页面内转发按钮
+            // console.log(res.target)
+        }
+        return {
+            title: '箴创学院',
+            path: '/pages/home/receive?givingCode=' + this.givingCode + '&collegeId=' + this.collegedetail.Id,
+            imageUrl: this.collegedetail.SmallImageUrl,
+            success(res){
+                
+            }
+        }
+    }
+
+    
+}
+</script>
+
+<style lang='less'>
+#pay{
+    width: 100%; height: 100%; box-sizing: border-box; padding-top: 10rpx; background-color: #FFFFFF;
+}
+
+
+.ellipsis{
+    display: -webkit-box;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    word-wrap: break-word;
+    white-space: normal !important;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+}
+
+
+
+.user{
+    width: 100%; height: 190rpx; display: flex; align-items: center;
+    border-bottom: 10rpx solid #F7F7F7; padding-left: 30rpx;
+    image{width: 120rpx; height: 120rpx; border-radius: 50%; margin-right: 34rpx;}
+    view{margin-top: 10rpx;}
+    h3{font-size: 34rpx; font-weight: 600;}
+}
+
+
+
+
+.classificationAll{
+    width: 100%; box-sizing: border-box; padding: 0 30rpx; background-color: white; margin-bottom: 10rpx; padding-bottom: 30rpx;
+    h2{ color: #333333; font-size: 36rpx;font-family:PingFangSC-Semibold; font-weight:600; }
+    .classificationAllList{
+        width: 100%; display: flex; justify-content: space-between; align-items: center; box-sizing: border-box; 
+        image{width: 200rpx; height: 120rpx; border-radius: 10rpx;}
+        .classificationAllList_cont{
+            width: 452rpx; height: 100%; box-sizing: border-box; padding-top: 44rpx; padding-bottom: 40rpx; position: relative;
+            .classificationAllList_cont_title{
+                width: 100%; height: 30rpx; display: flex; align-items: center;
+                color: #999999; font-size: 24rpx;
+                view{
+                    width: 100%; height: 100%; line-height: 30rpx; font-size: 28rpx; color: #333333; font-weight: 600;
+                    .ellipsis;
+                }
+            }
+            .classificationAllList_cont_{
+                width: 100%; height: 30rpx; line-height: 30rpx; font-size: 24rpx; color: #999999;
+                margin-top: 38rpx;
+                .ellipsis;
+            }
+            .classificationAllList_cont_chuang{
+                display: flex; align-items: center; font-size: 36rpx; color: #333333; font-weight: 600;
+                position: absolute; right: 30rpx; bottom: 28rpx;
+                image{width: 40rpx; height: 44rpx; margin-right: 15rpx;}
+            }
+        }
+    }
+    .description{color: #999999; font-size: 24rpx;}
+}
+
+
+
+.success{
+    width: 100%; height: 350rpx; text-align: center; 
+    border-top: 10rpx solid #F7F7F7; border-bottom: 10rpx solid #F7F7F7; 
+    view{
+        margin: 0 auto;
+        image{width: 88rpx; height: 88rpx; margin-top: 50rpx;}
+    }
+    .h3{font-size: 40rpx; font-weight: 600; margin-top: 40rpx; margin-bottom: 24rpx;}
+    text{font-size: 28rpx; font-weight: 400}
+}
+
+
+
+
+.status{
+    width: 100%; height: 334rpx; text-align: center; font-size: 28rpx; padding-top: 40rpx; border-top: 10rpx solid #F7F7F7; border-bottom: 10rpx solid #F7F7F7;
+    .noStatus{color: #939393; margin-top: 24rpx;}
+    image{width: 88rpx; height: 88rpx; border-radius: 50%; margin-bottom: 20rpx; margin-top: 46rpx;}
+}
+.statuss{border-bottom: 0!important;}
+
+
+
+.pays{
+    width:690rpx; height:94rpx; text-align: center; line-height: 94rpx; color: white; font-size: 36rpx;
+    background:linear-gradient(270deg,rgba(255,94,146,1) 0%,rgba(255,135,52,1) 100%);
+    border-radius:47rpx; position: fixed; bottom: 48rpx; left: 30rpx;
+    button{
+        width: 100%; height: 100%; opacity: 0; position: absolute; top: 0; left: 0;
+    }
+}
+
+
+
+
+
+
+
+.share{
+    width: 100%; height: 100%; background:rgba(0,0,0,0.6); box-sizing: border-box;
+    position: fixed; top: 0; left: 0; z-index: 10003; text-align: center; color: #FFFFFF;
+    image{
+        width: 84rpx; height: 126rpx; float: right; margin-right: 148rpx; margin-top: 50rpx;
+        margin-bottom: 76rpx;
+    }
+    view{clear: both; font-size: 40rpx; font-weight: 600;}
+}
+</style>

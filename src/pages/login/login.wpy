@@ -45,6 +45,9 @@ import 'wepy-async-function'
     ActivityCode(state) {
         return state.counter.ActivityCode;
     },
+    distributionCode(state) {
+        return state.counter.distributionCode;
+    },
     
 })
     
@@ -137,6 +140,20 @@ export default class Login extends wepy.page {
                         type: 'userinfos',
                         payload: res.data.Data
                     });
+                    if(this.distributionCode){
+                        // 绑定分销人码
+                        wepy.$Api.becomesub(this.distributionCode).then(res=>{
+                            // console.log(res.data)
+                            if(_res.data.IsSuccess){
+                                wx.switchTab({url:'/pages/home/index'})
+                            }else{
+
+                            }
+                            
+                        },err=>{
+
+                        })
+                    }
                     if(res.data.Dictionary.LoginGift.length>0){
                         this.isOks=true
                         this.LoginGift=res.data.Dictionary.LoginGift

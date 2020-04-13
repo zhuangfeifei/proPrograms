@@ -6,36 +6,35 @@
                 <view class="portrait">
                     <image @tap="routers" src="{{userinfo.LogoUrl}}" mode="aspectFill" lazy-load/>
                     <view class="my_name">
-                        <h3 @tap="routers">{{userinfo.UserName}}</h3>
+                        <view class="h3" @tap="routers">{{userinfo.UserName}}</view>
                         <image @tap="routers" src="/images/home/xiugai.png" mode="aspectFill" lazy-load/>
+                        <image @tap="businessCard" class="card" src="/images/home/card.png" mode="aspectFill" lazy-load/>
                         <view @tap="routers" wx:if="{{userinfo.Mobile}}" class="my_phone">{{userinfo.Mobile}}</view>
                         <view wx:else @tap="goLogin" class="goLogin" data-url="/pages/login/login">绑定手机号 送10创币</view>
                     </view>
                 </view>
-                <!-- <view wx:if="{{!isIos}}" class="my_balance" @tap="router" data-url="/pages/integral/sign"> -->
                 <view class="my_balance" @tap="router" data-url="/pages/integral/sign">
-                    <!-- <view>
-                        <image src="/images/home/cb.png" mode="aspectFill" lazy-load/>
-                        <text>{{"余额: "+userinfo.Balance/100}}\n<text class="recharge">去充值</text></text>
-                        <image class="more" src="/images/home/Chevron.png" mode="aspectFill" lazy-load/>
-                    </view> -->
                     <h5>签到领好礼</h5>
+                    <image src="https://zcxy.oss-cn-beijing.aliyuncs.com/xcx/liwu.png" />
                 </view>
             </view>
-            <view wx:if="{{!isIos}}" class="tab">
+            <view class="tab">
                 <view class="integral" @tap="goLogin" data-url="{{'/pages/integral/integral?Point='+userinfo.Point}}">
-                    <image src="/images/home/jifen.png" mode="aspectFill" lazy-load/>
                     <view>
-                        <text>积分</text>
                         <view>{{userinfo.Point}}</view>
+                        <text>积分</text>
                     </view>
                 </view>
-                <view class="chuangbi" @tap="goLogin" data-url="/pages/my/topUp">
-                    <view class="chuangbiSolid"></view>
-                    <image class="cb" src="/images/home/cb.png"/>
+                <view class="chuangbi" @tap="goLogin" data-url="/pages/my/myCoupons">
                     <view>
-                        <text>创币</text>
+                        <view>{{couponLength}}</view>
+                        <text>优惠券</text>
+                    </view>
+                </view>
+                <view wx:if="{{!isIos}}" class="chuangbi" @tap="goLogin" data-url="/pages/my/topUp">
+                    <view>
                         <view>{{userinfo.Balance/100}}</view>
+                        <text>创币</text>
                     </view>
                 </view>
             </view>
@@ -50,28 +49,29 @@
         </view>
 
         <view class="my_function">
-            <!-- <view class="my_list">
+            <view class="my_list" @tap="router" data-url="/pages/my/watchRecord">
                 <view>
-                    <image src="/images/home/youhuiquan.png" mode="aspectFill" lazy-load/>
-                    <text>优惠券</text>
-                </view>
-                <view>
-                    <text>10</text>
-                    <image src="/images/home/Chevron.png" mode="aspectFill" lazy-load/>
-                </view>
-            </view> -->
-            <view class="my_list" @tap="router" data-url="{{'/pages/integral/integral?Point='+userinfo.Point}}">
-                <view>
-                    <image class="integral" src="/images/home/integral.png" mode="aspectFill" lazy-load/>
-                    <text>我的积分</text>
+                    <image class="bo" src="https://zcxy.oss-cn-beijing.aliyuncs.com/xcx/%E6%97%B6%E9%97%B4%402x.png" mode="aspectFill" lazy-load/>
+                    <text>观看记录</text>
                 </view>
                 <view>
                     <image src="/images/home/Chevron.png" mode="aspectFill" lazy-load/>
                 </view>
             </view>
+            <scroll-view wx:if="{{mywatchList.length > 0}}" class="scroll-view_H" scroll-x style="width: 100%; height:160rpx; background-color:white;">
+                <view class="scrollX" style="width: {{286*mywatchList.length - 30}}rpx;">
+                    <block wx:for="{{mywatchList}}" wx:key="{{index}}">
+                        <view @tap="details" data-item="{{item}}">
+                            <image src="{{item.SmallImageUrl}}" mode="aspectFill" lazy-load />
+                            <progress class="progress" percent="{{item.RecRate}}" activeColor="#FF8734" backgroundColor="" border-radius="10" stroke-width="3" 
+                                active font-size="12"/>
+                        </view>
+                    </block>
+                </view>
+            </scroll-view>
             <view class="my_list" @tap="router" data-url="/pages/my/myCourse">
                 <view>
-                    <image class="course" src="/images/home/course.png" mode="aspectFill" lazy-load/>
+                    <image class="course" src="https://zcxy.oss-cn-beijing.aliyuncs.com/xcx/%E8%AF%BE%E7%A8%8B%402x.png" mode="aspectFill" lazy-load/>
                     <text>我的课程</text>
                 </view>
                 <view>
@@ -80,26 +80,17 @@
             </view>
             <view class="my_list" @tap="router" data-url="/pages/my/myOrder">
                 <view>
-                    <image class="order" src="/images/home/dingdan.png" mode="aspectFill" lazy-load/>
+                    <image class="order" src="https://zcxy.oss-cn-beijing.aliyuncs.com/xcx/%E8%AE%A2%E5%8D%95%402x.png" mode="aspectFill" lazy-load/>
                     <text>我的订单</text>
                 </view>
                 <view>
                     <image src="/images/home/Chevron.png" mode="aspectFill" lazy-load/>
                 </view>
             </view>
-            <view class="my_list" @tap="router" data-url="/pages/my/watchRecord">
+            <view wx:if="{{isDis}}" class="my_list" @tap="router" data-url="/pages/my/webmyLearning">
                 <view>
-                    <image class="bo" src="/images/home/bo.png" mode="aspectFill" lazy-load/>
-                    <text>播放记录</text>
-                </view>
-                <view>
-                    <image src="/images/home/Chevron.png" mode="aspectFill" lazy-load/>
-                </view>
-            </view>
-            <view class="my_list" @tap="businessCard">
-                <view>
-                    <image class="card" src="/images/home/card.png" mode="aspectFill" lazy-load/>
-                    <text>我的名片</text>
+                    <image class="order" src="https://zcxy.oss-cn-beijing.aliyuncs.com/xcx/%E9%92%B1%E5%8C%85%402x.png" mode="aspectFill" lazy-load/>
+                    <text>箴创合伙人</text>
                 </view>
                 <view>
                     <image src="/images/home/Chevron.png" mode="aspectFill" lazy-load/>
@@ -107,7 +98,7 @@
             </view>
             <view class="my_list" @tap="router" data-url="/pages/my/myCoupons">
                 <view>
-                    <image class="coupon" src="/images/home/coupon.png" mode="aspectFill" lazy-load/>
+                    <image class="coupon" src="https://zcxy.oss-cn-beijing.aliyuncs.com/xcx/%E4%BC%98%E6%83%A0%E5%88%B8%402x.png" mode="aspectFill" lazy-load/>
                     <text>我的优惠券</text>
                 </view>
                 <view>
@@ -116,14 +107,14 @@
             </view>
             <view class="my_list" @tap="router" data-url="/pages/my/manual">
                 <view>
-                    <image class="help" src="/images/home/help.png" mode="aspectFill" lazy-load/>
+                    <image class="help" src="https://zcxy.oss-cn-beijing.aliyuncs.com/xcx/%E5%B8%AE%20%E5%8A%A9%402x.png" mode="aspectFill" lazy-load/>
                     <text>使用帮助</text>
                 </view>
                 <view>
                     <image src="/images/home/Chevron.png" mode="aspectFill" lazy-load/>
                 </view>
             </view>
-            <view class="my_list">
+            <!-- <view class="my_list">
                 <view>
                     <image class="help" src="/images/home/test.png" mode="aspectFill" lazy-load/>
                     <text>邀请好友</text>
@@ -132,10 +123,10 @@
                     <image src="/images/home/Chevron.png" mode="aspectFill" lazy-load/>
                 </view>
                 <button open-type="share"></button>
-            </view>
+            </view> -->
             <view class="my_list feedback" @tap="router" data-url="/pages/my/feedback">
                 <view>
-                    <image class="feedbacks" src="/images/home/feedback.png" mode="aspectFill" lazy-load/>
+                    <image class="feedbacks" src="https://zcxy.oss-cn-beijing.aliyuncs.com/xcx/%E5%8F%8D%E9%A6%88%402x.png" mode="aspectFill" lazy-load/>
                     <text>意见反馈</text>
                 </view>
                 <view>
@@ -144,10 +135,10 @@
             </view>
         </view>
 
-        <view wx:if="{{isLogin}}" @tap="preventTouchMove" class="haibao">
+        <!-- <view wx:if="{{isLogin}}" @tap="preventTouchMove" class="haibao">
             <view class="skip" @tap.stop="Haibao">跳过</view>
             <image src="{{'https://zcxy.oss-cn-beijing.aliyuncs.com/xcx/guidance/step'+index+'.png?v1'}}" lazy-load/>
-        </view>
+        </view> -->
 
         <view id="Popup" wx:if="{{isSign}}">
             <view>积分</view>
@@ -184,7 +175,8 @@ export default class My extends wepy.page {
     
     data = {
         userinfo:'',asd:'', isIos:false, index:3, isLogin: false,
-        isSign: false,isCB:false, Point: 10
+        isSign: false,isCB:false, Point: 10, couponLength:0,
+        mywatchList:[], isDis: false
     }
     
     computed = {
@@ -266,6 +258,35 @@ export default class My extends wepy.page {
                     this.isLogin = true
                     this.$apply()
                 }
+                let list = {
+                    PageSize: 10, PageIndex: 1, Status: 1
+                }
+                wepy.$Api.myCouponList(list).then(res=>{
+                    if(res.data.IsSuccess){
+                        this.couponLength = res.data.TotalCount
+                        this.$apply()
+                    }else{
+                        wx.showToast({
+                            title: res.data.Message,
+                            icon: 'none',
+                            duration: 2000
+                        })
+                    }
+                })
+                wepy.$Api.mywatch({PageSize: 10, PageIndex: 1}).then(res=>{
+                    // console.log(res.data)
+                    if(res.data.IsSuccess){
+                        this.mywatchList = res.data.Data
+                        this.$apply()
+                    }else{
+                        wx.showToast({
+                            title: res.data.Message,
+                            icon: 'none',
+                            duration: 2000
+                        })
+                    }
+                    this.$apply()
+                })
             },
             fail:res=>{
                 // console.log(res)
@@ -302,6 +323,20 @@ export default class My extends wepy.page {
                     type: 'userinfos',
                     payload: res.data.Data
                 });
+                this.$apply()
+            }else{
+                wx.showToast({
+                    title: res.data.Message,
+                    icon: 'none',
+                    duration: 2000
+                })
+            }
+            this.$apply()
+        })
+        wepy.$Api.isDis().then(res=>{
+            // console.log(res.data)
+            if(res.data.IsSuccess){
+                this.isDis = res.data.Data
                 this.$apply()
             }else{
                 wx.showToast({
@@ -358,42 +393,46 @@ export default class My extends wepy.page {
     }
     .portraits{padding: 20rpx 0;}
     .portrait{
-        height: 120rpx;display: flex; align-items: center;
-        image{ width: 120rpx; height: 120rpx; border-radius: 50%; }
+        max-width: 450rpx; height: 120rpx; display: flex; align-items: center; justify-content: space-around;
+        image{ width: 120rpx; height: 120rpx; border-radius: 50%; margin-right: 10rpx;}
         .my_name{
-            margin-left: 34rpx;
-            h3{font-size: 34rpx; color: #333333;font-family:PingFangSC-Medium; font-weight:500;}
+            display: flex; flex-wrap: wrap;
+            .h3{
+                max-width: 160rpx; height: 30rpx; font-size: 30rpx; color: #333333;font-family:PingFangSC-Medium; font-weight:500; line-height: 30rpx;
+                display: -webkit-box;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                word-wrap: break-word;
+                white-space: normal !important;
+                -webkit-line-clamp: 1;
+                -webkit-box-orient: vertical;
+            }
             image{ width: 28rpx; height: 30rpx; border-radius: 0; margin-left: 10rpx; position: relative; top: 5rpx; }
+            .card{width: 38rpx; height: 34rpx; margin-left: 20rpx;}
             .my_phone{margin-top: 12rpx; color: #999999;}
             .goLogin{margin-top: 12rpx; color: #FC6619;}
             .goLogins{margin-top: 12rpx; color: #999999;}
         }
     }
     .my_balance{
-        text-align: right;
-        view{
-            display: flex; align-items: center;
-            image{width: 42rpx; height: 48rpx; margin-right: 22rpx;}
-            text{font-size: 24rpx; color: #333333; font-family:PingFangSC-Semibold; }
-            .recharge{margin-top: 8rpx; font-size: 28rpx; color: #FC6619; font-family:PingFangSC-Semibold;}
-            .more{width: 16rpx; height: 26rpx; margin-left: 22rpx; margin-right: 0;}
-        }
-        h5{color: #FC6619; font-size: 34rpx;}
+        display: flex; align-items: center; justify-content: flex-end;
+        h5{color: #FC6619; font-size: 30rpx;}
+        image{width: 40rpx; height: 40rpx; margin-left: 10rpx;}
     }
     
     .tab{
-        width: 100%; display: flex; align-items: center; padding-bottom: 26rpx; font-size: 34rpx;
-        image{width: 42rpx; height: 42rpx; margin-right: 32rpx;}
-        .cb{width: 40rpx; height: 44rpx;}
+        width: 100%; display: flex; align-items: center; justify-content: space-around; padding-bottom: 26rpx; font-size: 34rpx;
+        text-align: center; color: #333333; font-family:PingFangSC-Medium,PingFang SC;
+        view{width: 100%;}
         .integral{
-            width: 50%; display: flex; align-items: center; padding-left: 30rpx; box-sizing: border-box;
+            width: 33.33%; display: flex; align-items: center; box-sizing: border-box;
             view{margin-top: 10rpx; }
         }
         .chuangbi{
-            width: 50%; display: flex; align-items: center; box-sizing: border-box; 
-            .chuangbiSolid{width: 2rpx; height: 60rpx; background-color: #EDEDED; margin-right: 62rpx; margin-top: 0!important;}
+            width: 33.33%; display: flex; align-items: center; box-sizing: border-box;
             view{margin-top: 10rpx; }
         }
+        text{font-size: 24rpx;font-family:PingFangSC-Regular,PingFang SC;}
     }
 }
 
@@ -401,18 +440,18 @@ export default class My extends wepy.page {
 .my_function{
     width: 100%; margin-top: 10rpx;
     .my_list{
-        width: 100%; height: 106rpx; display: flex; justify-content: space-between; align-items: center; background-color: white;
-        box-sizing: border-box; padding-left: 10rpx; padding-right: 30rpx; border-bottom: 1px solid #EEEEEE; position: relative;
+        width: 100%; height: 90rpx; display: flex; justify-content: space-between; align-items: center; background-color: white;
+        box-sizing: border-box; padding-left: 10rpx; padding-right: 30rpx; position: relative;
         view:nth-child(1){
             display: flex; align-items: center;
             image{width: 48rpx; height: 48rpx; margin: 0 38rpx;}
-            .course{width: 36rpx; height: 36rpx;}
-            .order{width: 40rpx; height: 36rpx;}
-            .bo{width: 34rpx; height: 34rpx;}
+            .course{width: 22rpx; height: 22rpx;}
+            .order{width: 22rpx; height: 24rpx;}
+            .bo{width: 20rpx; height: 20rpx;}
             .card{width: 38rpx; height: 34rpx;}
-            .coupon{width: 36rpx; height: 30rpx;}
-            .help{width: 36rpx; height: 36rpx;}
-            .feedbacks{width: 36rpx; height: 26rpx;}
+            .coupon{width: 28rpx; height: 28rpx;}
+            .help{width: 24rpx; height: 24rpx;}
+            .feedbacks{width: 24rpx; height: 24rpx;}
             .integral{width: 36rpx; height: 36rpx;}
         }
         view:nth-child(2){
@@ -425,6 +464,18 @@ export default class My extends wepy.page {
     }
     .my_list:last-child{border: 0;}
     .feedback{margin-top: 10rpx;}
+
+    .scrollX{
+        height: 160rpx;display: flex; padding-left: 30rpx;
+        view{
+            width: 266rpx; height: 160rpx; float: left; background-color: #F74D4D; margin-right: 20rpx; border-radius: 10rpx; position: relative;
+            image{width: 100%; height: 100%; border-radius: 10rpx;}
+            .progress{width: 260rpx; position: absolute; bottom: 0; left: 3rpx; z-index: 10;}
+        }
+        view:last-child{
+            margin-right: 0;
+        }
+    }
 }
 
 
